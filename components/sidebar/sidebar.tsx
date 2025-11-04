@@ -11,6 +11,7 @@ import {AccountsIcon} from '../icons/sidebar/accounts-icon';
 import {CustomersIcon} from '../icons/sidebar/customers-icon';
 import {ProductsIcon} from '../icons/sidebar/products-icon';
 import {ReportsIcon} from '../icons/sidebar/reports-icon';
+import {DespachoIcon} from '../icons/sidebar/despacho-icon';
 import {DevIcon} from '../icons/sidebar/dev-icon';
 import {ViewIcon} from '../icons/sidebar/view-icon';
 import {SettingsIcon} from '../icons/sidebar/settings-icon';
@@ -83,6 +84,12 @@ export const SidebarWrapper = () => {
                         title="Productos"
                         icon={<ProductsIcon />}
                         href="/products"
+                     />
+                     <SidebarItem
+                        isActive={router.pathname === '/despacho'}
+                        title="Despacho"
+                        icon={<DespachoIcon />}
+                        href="/despacho"
                      />
                      <SidebarItem
                         isActive={router.pathname === '/reports'}
