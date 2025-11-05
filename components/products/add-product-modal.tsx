@@ -37,12 +37,36 @@ export const AddProductModal: React.FC<AddProductModalProps> = ({
 
    const [imageFile, setImageFile] = useState<File | null>(null);
    const [imagePreview, setImagePreview] = useState<string>('');
+   const [isLoading, setIsLoading] = useState(false);
 
    const [selectedCategory, setSelectedCategory] = useState(new Set(['Gaseosas']));
    const [selectedStatus, setSelectedStatus] = useState(new Set(['Disponible']));
 
    const categories = ['Gaseosas', 'Jugos', 'Aguas', 'Energizantes', 'Otros'];
    const statusOptions = ['Disponible', 'Agotado', 'Descontinuado'];
+
+   const resetForm = () => {
+      setFormData({
+         name: '',
+         description: '',
+         presentation: '',
+         precio_unitario: '',
+         precio_mayorista: '',
+         stock: '',
+         image: '',
+         category: 'Gaseosas',
+         status: 'Disponible'
+      });
+      setImageFile(null);
+      setImagePreview('');
+      setSelectedCategory(new Set(['Gaseosas']));
+      setSelectedStatus(new Set(['Disponible']));
+      setIsLoading(false);
+      
+      // Limpiar el input de archivo
+      const input = document.getElementById('image-upload') as HTMLInputElement;
+      if (input) input.value = '';
+   };
 
    const handleCategoryChange = (keys: any) => {
       setSelectedCategory(new Set(keys));
@@ -76,49 +100,94 @@ export const AddProductModal: React.FC<AddProductModalProps> = ({
       }
    };
 
-   const handleSubmit = () => {
+   const createProductInAPI = async (productData: FormData) => {
+      try {
+         const response = await fetch('https://api.bebidasdelperu.name/api/products', {
+            method: 'POST',
+            body: productData,
+         });
+
+         const result = await response.json();
+
+         if (!response.ok) {
+            // Manejo específico de errores de validación de Laravel
+            if (result.errors) {
+               const errorMessages = Object.values(result.errors).flat().join(', ');
+               throw new Error(`Errores de validación: ${errorMessages}`);
+            }
+            throw new Error(result.message || `Error ${response.status}: ${response.statusText}`);
+         }
+
+         console.log('✅ Producto creado exitosamente:', result);
+         return result;
+      } catch (error) {
+         console.error('❌ Error al crear producto:', error);
+         throw error;
+      }
+   };
+
+   const handleSubmit = async () => {
       console.log('📝 Datos del formulario al enviar:', formData);
       
       // Validar campos requeridos
       if (!formData.name || !formData.presentation || 
           !formData.precio_unitario || !formData.precio_mayorista || !formData.stock) {
          console.log('❌ Validación fallida - campos requeridos faltantes');
+         alert('Por favor, completa todos los campos requeridos');
          return;
       }
 
-      const newProduct: Omit<ProductLocal, 'id'> = {
-         name: formData.name,
-         description: formData.description || 'Sin descripción',
-         presentation: formData.presentation,
-         precio_unitario: parseFloat(formData.precio_unitario),
-         precio_mayorista: parseFloat(formData.precio_mayorista),
-         stock: parseInt(formData.stock),
-         image: formData.image || '/images/products/default.jpg',
-         category: Array.from(selectedCategory)[0] as string,
-         status: Array.from(selectedStatus)[0] as 'Disponible' | 'Agotado' | 'Descontinuado'
-      };
+      setIsLoading(true);
+      
+      try {
+         // Crear FormData para enviar a la API de Laravel
+         const apiFormData = new FormData();
+         apiFormData.append('nombre', formData.name);
+         apiFormData.append('descripcion', formData.description || 'Sin descripción');
+         apiFormData.append('presentacion', formData.presentation);
+         apiFormData.append('precioUnitario', formData.precio_unitario);
+         apiFormData.append('precioMayorista', formData.precio_mayorista);
+         apiFormData.append('stock', formData.stock);
 
-      console.log('📦 Producto procesado para envío:', newProduct);
-      onAddProduct(newProduct);
-      
-      // Reset form
-      setFormData({
-         name: '',
-         description: '',
-         presentation: '',
-         precio_unitario: '',
-         precio_mayorista: '',
-         stock: '',
-         image: '',
-         category: 'Gaseosas',
-         status: 'Disponible'
-      });
-      setImageFile(null);
-      setImagePreview('');
-      setSelectedCategory(new Set(['Gaseosas']));
-      setSelectedStatus(new Set(['Disponible']));
-      
-      onClose();
+         // Agregar imagen si existe
+         if (imageFile) {
+            apiFormData.append('urlImage', imageFile);
+         }
+
+         console.log('📤 Enviando datos a la API...');
+         
+         // Enviar a la API
+         const apiResult = await createProductInAPI(apiFormData);
+         
+         // También crear el producto local para la tabla
+         const newProduct: Omit<ProductLocal, 'id'> = {
+            name: formData.name,
+            description: formData.description || 'Sin descripción',
+            presentation: formData.presentation,
+            precio_unitario: parseFloat(formData.precio_unitario),
+            precio_mayorista: parseFloat(formData.precio_mayorista),
+            stock: parseInt(formData.stock),
+            image: imagePreview || '/images/products/default.jpg',
+            category: Array.from(selectedCategory)[0] as string,
+            status: Array.from(selectedStatus)[0] as 'Disponible' | 'Agotado' | 'Descontinuado'
+         };
+
+         console.log('📦 Producto procesado para tabla local:', newProduct);
+         onAddProduct(newProduct);
+         
+         // Reset form
+         resetForm();
+         
+         alert('¡Producto creado exitosamente!');
+         onClose();
+         
+      } catch (error: any) {
+         console.error('💥 Error al crear producto:', error);
+         const errorMessage = error?.message || 'Error desconocido al crear el producto';
+         alert(`Error: ${errorMessage}`);
+      } finally {
+         setIsLoading(false);
+      }
    };
 
    return (
@@ -127,7 +196,10 @@ export const AddProductModal: React.FC<AddProductModalProps> = ({
          blur
          aria-labelledby="modal-title"
          open={visible}
-         onClose={onClose}
+         onClose={() => {
+            resetForm();
+            onClose();
+         }}
          width="700px"
       >
          <Modal.Header>
@@ -343,7 +415,10 @@ export const AddProductModal: React.FC<AddProductModalProps> = ({
             </Flex>
          </Modal.Body>
          <Modal.Footer>
-            <Button auto flat color="error" onClick={onClose}>
+            <Button auto flat color="error" onClick={() => {
+               resetForm();
+               onClose();
+            }} disabled={isLoading}>
                Cancelar
             </Button>
             <Button 
@@ -356,10 +431,10 @@ export const AddProductModal: React.FC<AddProductModalProps> = ({
                   }
                }}
                onClick={handleSubmit}
-               disabled={!formData.name || !formData.presentation || 
+               disabled={isLoading || !formData.name || !formData.presentation || 
                         !formData.precio_unitario || !formData.precio_mayorista || !formData.stock}
             >
-               Agregar Producto
+               {isLoading ? '🔄 Creando...' : 'Agregar Producto'}
             </Button>
          </Modal.Footer>
       </Modal>
