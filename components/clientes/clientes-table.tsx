@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
    Table,
    Button,
@@ -10,114 +10,111 @@ import {
    Grid,
    Spacer,
    Card,
+   Loading,
 } from '@nextui-org/react';
 import { Flex } from '../styles/flex';
 import { Cliente, TipoCliente, ClienteMayorista, ClienteMinorista } from '../../types/clientes';
+import { ClienteAPIReal, TelefonoAPI, clientesApiService } from '../../services/clientes-api.service';
 import { EditIcon } from '../icons/table/edit-icon';
 import { DeleteIcon } from '../icons/table/delete-icon';
 import { EyeIcon } from '../icons/table/eye-icon';
 
 interface Props {
    tipoCliente: TipoCliente;
+   apiConnected?: boolean | null;
 }
 
-export const ClientesTable = ({ tipoCliente }: Props) => {
-   // Datos de ejemplo (en el futuro vendrá de la API)
-   const [clientesMayoristas] = useState<ClienteMayorista[]>([
-      {
-         id: '1',
-         tipo: 'mayorista',
-         ruc: '20123456789',
-         razonSocial: 'Distribuidora Lima SAC',
-         direccion: 'Av. Los Precursores 123, San Isidro, Lima',
-         telefonos: ['014567890', '987654321'],
-         estado: 'Activo',
-         fechaCreacion: '2024-01-15',
-      },
-      {
-         id: '2',
-         tipo: 'mayorista',
-         ruc: '20987654321',
-         razonSocial: 'Comercial Arequipa EIRL',
-         direccion: 'Calle Mercaderes 456, Cercado, Arequipa',
-         telefonos: ['054123456', '987123456', '945678901'],
-         estado: 'Activo',
-         fechaCreacion: '2024-02-10',
-      },
-      {
-         id: '3',
-         tipo: 'mayorista',
-         ruc: '20456789123',
-         razonSocial: 'Inversiones Trujillo SA',
-         direccion: 'Jr. Pizarro 789, Trujillo, La Libertad',
-         telefonos: ['044789012'],
-         estado: 'Inactivo',
-         fechaCreacion: '2024-01-05',
-      },
-   ]);
+export const ClientesTable = ({ tipoCliente, apiConnected }: Props) => {
+   const [clientes, setClientes] = useState<ClienteAPIReal[]>([]);
+   const [loading, setLoading] = useState(true);
+   const [error, setError] = useState<string>('');
+   
+   // Estados para paginación
+   const [currentPage, setCurrentPage] = useState(1);
+   const itemsPerPage = 6;
 
-   const [clientesMinoristas] = useState<ClienteMinorista[]>([
-      {
-         id: '4',
-         tipo: 'minorista',
-         dni: '12345678',
-         nombres: 'Juan Carlos',
-         apellidos: 'Pérez García',
-         direccion: 'Av. Brasil 1234, Jesús María, Lima',
-         telefonos: ['987654321', '014567890'],
-         estado: 'Activo',
-         fechaCreacion: '2024-03-01',
-      },
-      {
-         id: '5',
-         tipo: 'minorista',
-         dni: '87654321',
-         nombres: 'María Elena',
-         apellidos: 'Rodríguez López',
-         direccion: 'Calle Las Flores 567, Miraflores, Lima',
-         telefonos: ['987123456'],
-         estado: 'Activo',
-         fechaCreacion: '2024-03-05',
-      },
-      {
-         id: '6',
-         tipo: 'minorista',
-         dni: '11223344',
-         nombres: 'Carlos Alberto',
-         apellidos: 'González Vargas',
-         direccion: 'Jr. Los Olivos 890, San Miguel, Lima',
-         telefonos: ['987789012', '014123456', '945678901'],
-         estado: 'Inactivo',
-         fechaCreacion: '2024-02-20',
-      },
-   ]);
+   // Cargar clientes desde la API
+   useEffect(() => {
+      const cargarClientes = async () => {
+         setLoading(true);
+         setError('');
+         
+         console.log('🔄 Iniciando carga de clientes tipo:', tipoCliente);
+         
+         try {
+            const clientesData = await clientesApiService.obtenerClientesPorTipo(
+               tipoCliente === TipoCliente.MAYORISTA ? 'Mayorista' : 'Minorista'
+            );
+            console.log('✅ Clientes cargados:', clientesData);
+            setClientes(clientesData);
+         } catch (error: any) {
+            console.error('❌ Error al cargar clientes:', error);
+            setError(error.message || 'Error al cargar los clientes');
+            setClientes([]);
+         } finally {
+            setLoading(false);
+         }
+      };
 
-   const getClientesData = () => {
-      return tipoCliente === TipoCliente.MAYORISTA ? clientesMayoristas : clientesMinoristas;
+      cargarClientes();
+   }, [tipoCliente, apiConnected]);
+
+   // Función para recargar datos
+   const recargarDatos = async () => {
+      const cargarClientes = async () => {
+         setLoading(true);
+         setError('');
+         
+         try {
+            const clientesData = await clientesApiService.obtenerClientesPorTipo(
+               tipoCliente === TipoCliente.MAYORISTA ? 'Mayorista' : 'Minorista'
+            );
+            setClientes(clientesData);
+            setCurrentPage(1); // Resetear a la primera página
+         } catch (error: any) {
+            console.error('Error al recargar clientes:', error);
+            setError(error.message || 'Error al recargar los clientes');
+         } finally {
+            setLoading(false);
+         }
+      };
+
+      await cargarClientes();
    };
 
-   const handleEdit = (cliente: Cliente) => {
+   // Cálculos de paginación
+   const totalPages = Math.ceil(clientes.length / itemsPerPage);
+   const startIndex = (currentPage - 1) * itemsPerPage;
+   const endIndex = startIndex + itemsPerPage;
+   const clientesPaginados = clientes.slice(startIndex, endIndex);
+
+   // Función para cambiar página
+   const cambiarPagina = (page: number) => {
+      if (page >= 1 && page <= totalPages) {
+         setCurrentPage(page);
+      }
+   };
+
+   const handleEdit = (cliente: ClienteAPIReal) => {
       console.log('Editar cliente:', cliente);
    };
 
-   const handleDelete = (cliente: Cliente) => {
+   const handleDelete = (cliente: ClienteAPIReal) => {
       console.log('Eliminar cliente:', cliente);
    };
 
-   const handleView = (cliente: Cliente) => {
+   const handleView = (cliente: ClienteAPIReal) => {
       console.log('Ver detalles del cliente:', cliente);
    };
 
-   const renderCell = (cliente: Cliente, columnKey: React.Key) => {
-      const cellValue = cliente[columnKey as keyof Cliente];
-
+   const renderCell = (cliente: ClienteAPIReal, columnKey: React.Key) => {
       switch (columnKey) {
          case 'identificacion':
             return (
                <Text css={{ fontSize: '$sm', fontWeight: '$semibold' }}>
-                  {cliente.tipo === 'mayorista' 
-                     ? (cliente as ClienteMayorista).ruc
-                     : (cliente as ClienteMinorista).dni
+                  {cliente.tipoCliente === 'Mayorista' 
+                     ? cliente.ruc
+                     : cliente.dni
                   }
                </Text>
             );
@@ -126,13 +123,13 @@ export const ClientesTable = ({ tipoCliente }: Props) => {
             return (
                <Flex direction="column">
                   <Text css={{ fontSize: '$sm', fontWeight: '$semibold', color: '#034F32' }}>
-                     {cliente.tipo === 'mayorista' 
-                        ? (cliente as ClienteMayorista).razonSocial
-                        : `${(cliente as ClienteMinorista).nombres} ${(cliente as ClienteMinorista).apellidos}`
+                     {cliente.tipoCliente === 'Mayorista' 
+                        ? (cliente.razonSocial || cliente.razon_social)
+                        : `${cliente.nombre} ${cliente.apellidos}`
                      }
                   </Text>
                   <Text css={{ fontSize: '$xs', color: '$accents7' }}>
-                     {cliente.tipo === 'mayorista' ? 'Empresa' : 'Persona Natural'}
+                     {cliente.tipoCliente === 'Mayorista' ? 'Empresa' : 'Persona Natural'}
                   </Text>
                </Flex>
             );
@@ -146,30 +143,29 @@ export const ClientesTable = ({ tipoCliente }: Props) => {
 
          case 'telefonos':
             return (
-               <Flex direction="column" css={{ gap: '$1' }}>
-                  {cliente.telefonos.map((telefono, index) => (
-                     <Text key={index} css={{ fontSize: '$xs' }}>
-                        {telefono}
-                     </Text>
-                  ))}
-               </Flex>
+               <Text css={{ fontSize: '$sm' }}>
+                  {cliente.telefonos && cliente.telefonos.length > 0 
+                     ? cliente.telefonos.map(tel => tel.numero || tel.number || 'N/A').join(', ')
+                     : 'Sin datos'
+                  }
+               </Text>
             );
 
          case 'estado':
             return (
                <Badge 
-                  color={cliente.estado === 'Activo' ? 'success' : 'error'}
+                  color="success"
                   variant="flat"
                   size="sm"
                >
-                  {cliente.estado}
+                  Activo
                </Badge>
             );
 
          case 'fechaCreacion':
             return (
                <Text css={{ fontSize: '$sm' }}>
-                  {new Date(cliente.fechaCreacion || '').toLocaleDateString('es-PE')}
+                  {new Date(cliente.created_at).toLocaleDateString('es-PE')}
                </Text>
             );
 
@@ -215,7 +211,7 @@ export const ClientesTable = ({ tipoCliente }: Props) => {
             );
 
          default:
-            return cellValue;
+            return <Text css={{ fontSize: '$sm' }}>-</Text>;
       }
    };
 
@@ -240,45 +236,62 @@ export const ClientesTable = ({ tipoCliente }: Props) => {
    ];
 
    const columnas = tipoCliente === TipoCliente.MAYORISTA ? columnasMayorista : columnasMinorista;
-   const clientes = getClientesData();
 
    return (
       <Card css={{ p: '$6' }}>
+         {/* Mensaje de carga */}
+         {loading && (
+            <Flex justify="center" align="center" css={{ py: '$10' }}>
+               <Loading size="lg">Cargando clientes...</Loading>
+            </Flex>
+         )}
+
+         {/* Mensaje de error */}
+         {error && !loading && (
+            <Card css={{ backgroundColor: '$errorLight', p: '$4', mb: '$4' }}>
+               <Flex justify="between" align="center">
+                  <Text css={{ color: '$error' }}>❌ {error}</Text>
+                  <Button auto flat color="error" size="sm" onPress={recargarDatos}>
+                     Reintentar
+                  </Button>
+               </Flex>
+            </Card>
+         )}
+
          {/* Header con filtros */}
-         <Flex justify="between" align="center" css={{ mb: '$4' }}>
-            <Text h4 css={{ color: '#034F32' }}>
-               {tipoCliente === TipoCliente.MAYORISTA 
-                  ? 'Clientes Mayoristas' 
-                  : 'Clientes Minoristas'
-               } ({clientes.length})
-            </Text>
-            
-            <Grid.Container gap={1} css={{ maxWidth: '400px' }}>
-               <Grid xs={12}>
-                  <Input
-                     clearable
-                     placeholder="Buscar clientes..."
-                     color="success"
-                     size="sm"
-                     css={{ width: '100%' }}
-                  />
-               </Grid>
-            </Grid.Container>
-         </Flex>
+         {!loading && (
+            <Flex justify="between" align="center" css={{ mb: '$4' }}>
+               <Text h4 css={{ color: '#034F32' }}>
+                  {tipoCliente === TipoCliente.MAYORISTA 
+                     ? 'Clientes Mayoristas' 
+                     : 'Clientes Minoristas'}
+                  {` (${clientes.length})`}
+               </Text>
+               <Flex css={{ gap: '$2' }}>
+                  <Text css={{ fontSize: '$sm', color: '$accents7' }}>
+                     Página {currentPage} de {totalPages}
+                  </Text>
+                  <Button auto flat color="success" size="sm" onPress={recargarDatos}>
+                     🔄 Actualizar
+                  </Button>
+               </Flex>
+            </Flex>
+         )}
 
          {/* Tabla */}
-         <Table
-            aria-label={`Tabla de ${tipoCliente}`}
-            css={{
-               height: 'auto',
-               minWidth: '100%',
-               '& .nextui-table-header': {
-                  backgroundColor: '#F1F1E9',
-               },
-               '& .nextui-table-header th': {
-                  color: '#034F32',
-                  fontWeight: '$semibold',
-               },
+         {!loading && !error && (
+            <Table
+               aria-label={`Tabla de ${tipoCliente}`}
+               css={{
+                  height: 'auto',
+                  minWidth: '100%',
+                  '& .nextui-table-header': {
+                     backgroundColor: '#F1F1E9',
+                  },
+                  '& .nextui-table-header th': {
+                     color: '#034F32',
+                     fontWeight: '$semibold',
+                  },
                '& .nextui-table-row:hover': {
                   backgroundColor: '#F9F9F9',
                }
@@ -294,8 +307,8 @@ export const ClientesTable = ({ tipoCliente }: Props) => {
             </Table.Header>
             
             <Table.Body>
-               {clientes.map((item) => (
-                  <Table.Row key={item.id}>
+               {clientesPaginados.map((item) => (
+                  <Table.Row key={item.idCliente}>
                      {(columnKey) => (
                         <Table.Cell>
                            {renderCell(item, columnKey)}
@@ -305,8 +318,75 @@ export const ClientesTable = ({ tipoCliente }: Props) => {
                ))}
             </Table.Body>
          </Table>
+         )}
 
-         {clientes.length === 0 && (
+         {/* Controles de paginación */}
+         {!loading && !error && clientes.length > 0 && totalPages > 1 && (
+            <Flex justify="center" align="center" css={{ mt: '$4', gap: '$2' }}>
+               <Button 
+                  auto 
+                  flat 
+                  size="sm" 
+                  disabled={currentPage === 1}
+                  onPress={() => cambiarPagina(currentPage - 1)}
+                  css={{ minWidth: '40px' }}
+               >
+                  ‹
+               </Button>
+               
+               {Array.from({ length: totalPages }, (_, index) => index + 1).map((page) => (
+                  <Button
+                     key={page}
+                     auto
+                     flat={page !== currentPage}
+                     color={page === currentPage ? "success" : "default"}
+                     size="sm"
+                     onPress={() => cambiarPagina(page)}
+                     css={{ 
+                        minWidth: '40px',
+                        backgroundColor: page === currentPage ? '#034F32' : 'transparent',
+                        color: page === currentPage ? 'white' : '#034F32'
+                     }}
+                  >
+                     {page}
+                  </Button>
+               ))}
+               
+               <Button 
+                  auto 
+                  flat 
+                  size="sm" 
+                  disabled={currentPage === totalPages}
+                  onPress={() => cambiarPagina(currentPage + 1)}
+                  css={{ minWidth: '40px' }}
+               >
+                  ›
+               </Button>
+            </Flex>
+         )}
+
+         {/* Información de paginación */}
+         {!loading && !error && clientes.length > 0 && (
+            <Flex justify="center" css={{ mt: '$2' }}>
+               <Text css={{ fontSize: '$xs', color: '$accents7' }}>
+                  Mostrando {startIndex + 1}-{Math.min(endIndex, clientes.length)} de {clientes.length} clientes
+               </Text>
+            </Flex>
+         )}
+
+         {/* Mensaje cuando API no está conectada */}
+         {apiConnected === false && (
+            <Flex justify="center" align="center" css={{ py: '$8' }}>
+               <Text css={{ color: '$error', textAlign: 'center', fontSize: '$sm' }}>
+                  ⚠️ No se puede cargar la información de clientes
+                  <br />
+                  La API no está disponible en este momento
+               </Text>
+            </Flex>
+         )}
+
+         {/* Mensaje cuando no hay clientes */}
+         {!loading && !error && clientes.length === 0 && apiConnected !== false && (
             <Flex justify="center" align="center" css={{ py: '$10' }}>
                <Text css={{ color: '$accents7', textAlign: 'center' }}>
                   No hay clientes {tipoCliente} registrados aún.

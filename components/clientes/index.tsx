@@ -5,10 +5,14 @@ import { TipoCliente } from '../../types/clientes';
 import { AddClienteMayorista } from './add-cliente-mayorista';
 import { AddClienteMinorista } from './add-cliente-minorista';
 import { ClientesTable } from './clientes-table';
+import { CompactApiStatus } from './compact-api-status';
+import { ApiDiagnosticModal } from './api-diagnostic-modal';
 
 export const ClientesContent = () => {
    const [activeTab, setActiveTab] = useState<TipoCliente>(TipoCliente.MAYORISTA);
    const [showAddModal, setShowAddModal] = useState(false);
+   const [showDiagnosticModal, setShowDiagnosticModal] = useState(false);
+   const [apiConnected, setApiConnected] = useState<boolean | null>(null);
 
    // Datos de ejemplo para estadísticas (en el futuro vendrá de la API)
    const stats = {
@@ -30,6 +34,10 @@ export const ClientesContent = () => {
       setActiveTab(tipo);
    };
 
+   const handleApiStatusChange = (connected: boolean) => {
+      setApiConnected(connected);
+   };
+
    return (
       <Flex
          css={{
@@ -44,9 +52,28 @@ export const ClientesContent = () => {
          direction={'column'}
       >
          <Flex justify="between" align="center">
-            <Text h3 css={{ color: '#034F32', fontWeight: 'bold' }}>
-               Gestión de Clientes
-            </Text>
+            <Flex direction="column">
+               <Text h3 css={{ color: '#034F32', fontWeight: 'bold' }}>
+                  Gestión de Clientes
+               </Text>
+               {apiConnected === false && (
+                  <Text css={{ fontSize: '$xs', color: '$warning', mt: '$1' }}>
+                     💡 Tip: Haz doble clic en el indicador de API para ejecutar diagnósticos
+                  </Text>
+               )}
+            </Flex>
+            <Flex align="center" css={{ gap: '$2' }}>
+               <Button
+                  auto
+                  flat
+                  color="warning"
+                  size="sm"
+                  onPress={() => setShowDiagnosticModal(true)}
+               >
+                  🔧 Diagnóstico API
+               </Button>
+               <CompactApiStatus onStatusChange={handleApiStatusChange} />
+            </Flex>
          </Flex>
          
          <Spacer y={1} />
@@ -142,11 +169,12 @@ export const ClientesContent = () => {
             
             <Button
                auto
+               disabled={apiConnected === false}
                css={{
-                  backgroundColor: '#5CAC4C',
+                  backgroundColor: apiConnected === false ? '$gray400' : '#5CAC4C',
                   color: 'white',
                   '&:hover': {
-                     backgroundColor: '#4A9C3C'
+                     backgroundColor: apiConnected === false ? '$gray400' : '#4A9C3C'
                   }
                }}
                onPress={handleAddCliente}
@@ -158,7 +186,7 @@ export const ClientesContent = () => {
          <Spacer y={1.5} />
 
          {/* Tabla de clientes */}
-         <ClientesTable tipoCliente={activeTab} />
+         <ClientesTable tipoCliente={activeTab} apiConnected={apiConnected} />
 
          {/* Modales de agregar clientes */}
          {showAddModal && activeTab === TipoCliente.MAYORISTA && (
@@ -174,6 +202,12 @@ export const ClientesContent = () => {
                onClose={handleCloseModal}
             />
          )}
+
+         {/* Modal de diagnóstico de API */}
+         <ApiDiagnosticModal 
+            open={showDiagnosticModal}
+            onClose={() => setShowDiagnosticModal(false)}
+         />
       </Flex>
    );
 };
