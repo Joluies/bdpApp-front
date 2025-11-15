@@ -11,7 +11,7 @@ interface Company {
    logo: React.ReactNode;
 }
 
-const BDPLogo = ({ size = 332 }) => (
+const BDPLogo = ({ size = 532 }) => (
    <Image 
       src="/logo/BDP-logo.png" 
       alt="Bebidas del Perú Logo" 
@@ -34,7 +34,7 @@ export const CompaniesDropdown = () => {
       <Dropdown placement="bottom-right" borderWeight={'extrabold'}>
          <Dropdown.Trigger css={{cursor: 'pointer'}}>
             <Box>
-               <Flex direction={'column'} align={'center'} css={{gap: '$5'}}>
+               <Flex direction={'column'} align={'center'}>
                   {company.logo}
                   <Box css={{textAlign: 'center'}}>
                      <Text

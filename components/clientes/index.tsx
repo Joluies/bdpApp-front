@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { Card, Button, Spacer, Text, Grid } from '@nextui-org/react';
+import React, { useState, useEffect } from 'react';
+import { Card, Button, Spacer, Text, Grid, Loading } from '@nextui-org/react';
 import { Flex } from '../styles/flex';
 import { TipoCliente } from '../../types/clientes';
 import { AddClienteMayorista } from './add-cliente-mayorista';
@@ -7,19 +7,49 @@ import { AddClienteMinorista } from './add-cliente-minorista';
 import { ClientesTable } from './clientes-table';
 import { CompactApiStatus } from './compact-api-status';
 import { ApiDiagnosticModal } from './api-diagnostic-modal';
+import { clientesApiService } from '../../services/clientes-api.service';
 
 export const ClientesContent = () => {
    const [activeTab, setActiveTab] = useState<TipoCliente>(TipoCliente.MAYORISTA);
    const [showAddModal, setShowAddModal] = useState(false);
    const [showDiagnosticModal, setShowDiagnosticModal] = useState(false);
    const [apiConnected, setApiConnected] = useState<boolean | null>(null);
+   
+   // Estados para estadísticas desde la API
+   const [stats, setStats] = useState({
+      totalClientes: 0,
+      clientesMayoristas: 0,
+      clientesMinoristas: 0,
+      clientesActivos: 0
+   });
+   const [loadingStats, setLoadingStats] = useState(true);
 
-   // Datos de ejemplo para estadísticas (en el futuro vendrá de la API)
-   const stats = {
-      totalClientes: 156,
-      clientesMayoristas: 89,
-      clientesMinoristas: 67,
-      clientesActivos: 142
+   // Cargar estadísticas desde la API
+   useEffect(() => {
+      cargarEstadisticas();
+   }, [apiConnected]);
+
+   const cargarEstadisticas = async () => {
+      if (apiConnected === false) {
+         setLoadingStats(false);
+         return;
+      }
+
+      setLoadingStats(true);
+      try {
+         const estadisticas = await clientesApiService.obtenerEstadisticasClientes();
+         setStats({
+            totalClientes: estadisticas.total,
+            clientesMayoristas: estadisticas.mayoristas,
+            clientesMinoristas: estadisticas.minoristas,
+            clientesActivos: estadisticas.total // Asumimos que todos están activos por ahora
+         });
+      } catch (error) {
+         console.error('Error al cargar estadísticas:', error);
+         // Mantener los valores en 0 si hay error
+      } finally {
+         setLoadingStats(false);
+      }
    };
 
    const handleAddCliente = () => {
@@ -28,6 +58,8 @@ export const ClientesContent = () => {
 
    const handleCloseModal = () => {
       setShowAddModal(false);
+      // Recargar estadísticas después de cerrar el modal (por si se agregó un cliente)
+      cargarEstadisticas();
    };
 
    const handleTabChange = (tipo: TipoCliente) => {
@@ -83,48 +115,72 @@ export const ClientesContent = () => {
             <Grid xs={6} md={3}>
                <Card css={{ backgroundColor: '#F1F1E9', p: '$6', w: '100%' }}>
                   <Card.Body>
-                     <Text css={{ color: '#034F32', fontSize: '2rem', fontWeight: 'bold' }}>
-                        {stats.totalClientes}
-                     </Text>
-                     <Text css={{ color: '#034F32', fontSize: '0.9rem' }}>
-                        Total Clientes
-                     </Text>
+                     {loadingStats ? (
+                        <Loading size="lg" color="success" />
+                     ) : (
+                        <>
+                           <Text css={{ color: '#034F32', fontSize: '2rem', fontWeight: 'bold' }}>
+                              {stats.totalClientes}
+                           </Text>
+                           <Text css={{ color: '#034F32', fontSize: '0.9rem' }}>
+                              Total Clientes
+                           </Text>
+                        </>
+                     )}
                   </Card.Body>
                </Card>
             </Grid>
             <Grid xs={6} md={3}>
                <Card css={{ backgroundColor: '#C8ECC9', p: '$6', w: '100%' }}>
                   <Card.Body>
-                     <Text css={{ color: '#034F32', fontSize: '2rem', fontWeight: 'bold' }}>
-                        {stats.clientesMayoristas}
-                     </Text>
-                     <Text css={{ color: '#034F32', fontSize: '0.9rem' }}>
-                        Mayoristas
-                     </Text>
+                     {loadingStats ? (
+                        <Loading size="lg" color="success" />
+                     ) : (
+                        <>
+                           <Text css={{ color: '#034F32', fontSize: '2rem', fontWeight: 'bold' }}>
+                              {stats.clientesMayoristas}
+                           </Text>
+                           <Text css={{ color: '#034F32', fontSize: '0.9rem' }}>
+                              Mayoristas
+                           </Text>
+                        </>
+                     )}
                   </Card.Body>
                </Card>
             </Grid>
             <Grid xs={6} md={3}>
                <Card css={{ backgroundColor: '#F8D7DA', p: '$6', w: '100%' }}>
                   <Card.Body>
-                     <Text css={{ color: '#034F32', fontSize: '2rem', fontWeight: 'bold' }}>
-                        {stats.clientesMinoristas}
-                     </Text>
-                     <Text css={{ color: '#034F32', fontSize: '0.9rem' }}>
-                        Minoristas
-                     </Text>
+                     {loadingStats ? (
+                        <Loading size="lg" color="success" />
+                     ) : (
+                        <>
+                           <Text css={{ color: '#034F32', fontSize: '2rem', fontWeight: 'bold' }}>
+                              {stats.clientesMinoristas}
+                           </Text>
+                           <Text css={{ color: '#034F32', fontSize: '0.9rem' }}>
+                              Minoristas
+                           </Text>
+                        </>
+                     )}
                   </Card.Body>
                </Card>
             </Grid>
             <Grid xs={6} md={3}>
                <Card css={{ backgroundColor: '#034F32', p: '$6', w: '100%' }}>
                   <Card.Body>
-                     <Text css={{ color: 'white', fontSize: '2rem', fontWeight: 'bold' }}>
-                        {stats.clientesActivos}
-                     </Text>
-                     <Text css={{ color: 'white', fontSize: '0.9rem' }}>
-                        Activos
-                     </Text>
+                     {loadingStats ? (
+                        <Loading size="lg" color="white" />
+                     ) : (
+                        <>
+                           <Text css={{ color: 'white', fontSize: '2rem', fontWeight: 'bold' }}>
+                              {stats.clientesActivos}
+                           </Text>
+                           <Text css={{ color: 'white', fontSize: '0.9rem' }}>
+                              Activos
+                           </Text>
+                        </>
+                     )}
                   </Card.Body>
                </Card>
             </Grid>

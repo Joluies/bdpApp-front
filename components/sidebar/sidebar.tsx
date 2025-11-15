@@ -107,7 +107,7 @@ export const SidebarWrapper = () => {
                      />
                      <SidebarItem
                         isActive={router.pathname === '/reports'}
-                        title="Informes"
+                        title="Reportes"
                         icon={<ReportsIcon />}
                      />
                   </SidebarMenu>
