@@ -18,12 +18,18 @@ import {DevIcon} from '../icons/sidebar/dev-icon';
 import {ViewIcon} from '../icons/sidebar/view-icon';
 import {SettingsIcon} from '../icons/sidebar/settings-icon';
 import {CollapseItems} from './collapse-items';
+import {CollapseItemsWithAction} from './collapse-items-with-action';
 import {SidebarItem} from './sidebar-item';
 import {SidebarMenu} from './sidebar-menu';
 import {FilterIcon} from '../icons/sidebar/filter-icon';
 import {useSidebarContext} from '../layout/layout-context';
 import {ChangeLogIcon} from '../icons/sidebar/changelog-icon';
 import {useRouter} from 'next/router';
+import {
+   downloadReporteVentasDiarias,
+   downloadReportePedidosProgramados,
+   downloadReporteCierreCaja,
+} from '../../services/reportes-excel.service';
 
 export const SidebarWrapper = () => {
    const router = useRouter();
@@ -59,10 +65,10 @@ export const SidebarWrapper = () => {
                   />
                   <SidebarMenu title="Main Menu">
                      <SidebarItem
-                        isActive={router.pathname === '/accounts'}
-                        title="Cuentas"
+                        isActive={router.pathname === '/usuarios'}
+                        title="Usuarios"
                         icon={<AccountsIcon />}
-                        href="accounts"
+                        href="/usuarios"
                      />
                      <SidebarItem
                         isActive={router.pathname === '/payments'}
@@ -105,10 +111,23 @@ export const SidebarWrapper = () => {
                         icon={<DespachoIcon />}
                         href="/despacho"
                      />
-                     <SidebarItem
-                        isActive={router.pathname === '/reports'}
+                     <CollapseItemsWithAction
                         title="Reportes"
                         icon={<ReportsIcon />}
+                        items={[
+                           {
+                              name: 'Ventas Diarias',
+                              onDownload: downloadReporteVentasDiarias,
+                           },
+                           {
+                              name: 'Pedidos Programados',
+                              onDownload: downloadReportePedidosProgramados,
+                           },
+                           {
+                              name: 'Cierre de Caja',
+                              onDownload: downloadReporteCierreCaja,
+                           },
+                        ]}
                      />
                   </SidebarMenu>
 
