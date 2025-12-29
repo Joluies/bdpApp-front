@@ -1,7 +1,7 @@
 // Configuración de la API para diferentes entornos
 export const API_CONFIG = {
   // URL base de la API
-  BASE_URL: 'https://bebidasdelperuapp.com/api',
+  BASE_URL: 'https://api.bebidasdelperuapp.com/api',
   
   // Configuración por entorno
   DEVELOPMENT: {
