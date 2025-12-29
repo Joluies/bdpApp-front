@@ -225,7 +225,8 @@ export const ClientesTable = ({ tipoCliente, apiConnected }: Props) => {
          case 'acciones':
             return (
                <Flex css={{ gap: '$2' }}>
-                  <Tooltip content="Ver detalles" color="primary">
+                  <Tooltip color="primary" css={undefined} content={undefined} contentColor={undefined}>
+                     Ver detalles
                      <Button 
                         auto 
                         light 
@@ -237,7 +238,8 @@ export const ClientesTable = ({ tipoCliente, apiConnected }: Props) => {
                      </Button>
                   </Tooltip>
                   
-                  <Tooltip content="Editar cliente" color="success">
+                  <Tooltip color="success" css={undefined} content={undefined} contentColor={undefined}>
+                     Editar cliente
                      <Button 
                         auto 
                         light 
@@ -249,7 +251,8 @@ export const ClientesTable = ({ tipoCliente, apiConnected }: Props) => {
                      </Button>
                   </Tooltip>
                   
-                  <Tooltip content="Eliminar cliente" color="error">
+                  <Tooltip color="error" css={undefined} content={undefined} contentColor={undefined}>
+                     Eliminar cliente
                      <Button 
                         auto 
                         light 
@@ -629,10 +632,10 @@ export const ClientesTable = ({ tipoCliente, apiConnected }: Props) => {
                <Button
                   auto
                   color="success"
-                  loading={loadingEdicion}
+                  disabled={loadingEdicion}
                   onPress={guardarCambiosCliente}
                >
-                  Guardar Cambios
+                  {loadingEdicion ? 'Guardando...' : 'Guardar Cambios'}
                </Button>
             </Modal.Footer>
          </Modal>

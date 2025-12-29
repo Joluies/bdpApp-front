@@ -136,7 +136,11 @@ export const ProductsContent = () => {
             // Agregar el producto local directamente sin convertir
             setProducts(prev => {
                console.log('📋 Agregando producto a lista local');
-               const updatedList = [...prev, sanitizedProduct];
+               const productWithId: ProductLocal = {
+                  id: newProduct.idProducto || Date.now(),
+                  ...sanitizedProduct
+               };
+               const updatedList = [...prev, productWithId];
                console.log('📊 Total de productos después de agregar:', updatedList.length);
                return updatedList;
             });
