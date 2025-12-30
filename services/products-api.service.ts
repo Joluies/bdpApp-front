@@ -1,7 +1,5 @@
 // Servicio para la API real de productos de Bebidas del Perú
-import { API_CONFIG } from '../config/api.config';
-
-const API_BASE_URL = API_CONFIG.BASE_URL;
+const API_BASE_URL = process.env.REACT_APP_API_BASE_URL || 'http://localhost:3000/api';
 
 export interface ApiProduct {
   idProducto: number;

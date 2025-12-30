@@ -1,5 +1,5 @@
 // Servicio para API de clientes
-import { API_CONFIG, getCurrentConfig, buildApiUrl } from '../config/api.config';
+import { API_CONFIG, getCurrentConfig, buildApiUrl } from '@/config/api.config';
 
 // Detectar entorno de desarrollo
 const IS_DEVELOPMENT = process.env.NODE_ENV === 'development';
