@@ -114,10 +114,13 @@ export const AddClienteMayorista = ({ open, onClose, onSuccess }: Props) => {
          return;
       }
       
-      // Validar que al menos haya un teléfono válido
-      const telefonosValidos = formData.telefonos.filter(tel => tel.number.trim().length >= 7);
+      // Validar que al menos haya un teléfono válido (9 dígitos empezando con 9)
+      const telefonosValidos = formData.telefonos.filter(tel => {
+         const num = tel.number.trim();
+         return /^\d{9}$/.test(num) && num.startsWith('9');
+      });
       if (telefonosValidos.length === 0) {
-         setApiError('Debe proporcionar al menos un teléfono válido (mínimo 7 dígitos)');
+         setApiError('Debe proporcionar al menos un teléfono válido (9 dígitos empezando con 9)');
          return;
       }
       
@@ -125,22 +128,31 @@ export const AddClienteMayorista = ({ open, onClose, onSuccess }: Props) => {
       setApiError(''); // Limpiar errores previos
 
       try {
-         // Preparar los datos para la API con el formato esperado
-         const apiData = {
-            tipoCliente: 'Mayorista' as const,
-            ruc: formData.ruc,
-            razonSocial: formData.razonSocial,
-            nombre: formData.nombre,
-            apellidos: formData.apellidos,
-            dni: formData.dni,
-            direccion: formData.direccion,
-            telefonos: telefonosValidos
-         };
+         // Crear FormData para enviar datos correctamente
+         const formDataToSend = new FormData();
+         
+         // Agregar datos básicos
+         formDataToSend.append('tipoCliente', 'Mayorista');
+         formDataToSend.append('ruc', formData.ruc);
+         formDataToSend.append('razonSocial', formData.razonSocial);
+         formDataToSend.append('nombre', formData.nombre);
+         formDataToSend.append('apellidos', formData.apellidos);
+         formDataToSend.append('dni', formData.dni);
+         formDataToSend.append('direccion', formData.direccion);
+         
+         // Nota: Las coordenadas y fotos se agregarán desde la app móvil
+         
+         // Agregar teléfonos válidos
+         const telefonosValidos = formData.telefonos.filter(tel => tel.number.trim().length >= 7);
+         telefonosValidos.forEach((tel, index) => {
+            formDataToSend.append(`telefonos[${index}][number]`, tel.number);
+            formDataToSend.append(`telefonos[${index}][description]`, tel.description);
+         });
 
-         console.log('📤 Enviando datos a la API:', apiData);
+         console.log('📤 Enviando datos a la API de customers...');
 
-         // Llamada a la API real
-         const response = await clientesApiService.crearClienteMayorista(apiData);
+         // Llamada a la nueva API mejorada
+         const response = await clientesApiService.crearClienteConFotosYCoordenadas(formDataToSend);
          
          console.log('✅ Cliente mayorista creado exitosamente:', response);
          
@@ -385,11 +397,11 @@ export const AddClienteMayorista = ({ open, onClose, onSuccess }: Props) => {
                               fullWidth
                               color="success"
                               size="lg"
-                              placeholder="Ingrese número (mínimo 7 dígitos)"
+                              placeholder="9xxxxxxxx (9 dígitos)"
                               label="Número de Teléfono"
                               value={telefono.number}
                               onChange={(e) => handleTelefonoChange(index, 'number', e.target.value)}
-                              maxLength={12}
+                              maxLength={9}
                            />
                         </Grid>
 

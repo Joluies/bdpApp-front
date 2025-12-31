@@ -86,9 +86,45 @@ export const AddClienteMinorista = ({ open, onClose, onSuccess }: Props) => {
          return;
       }
 
+      // Validar que DNI tenga 8 dígitos
+      if (formData.dni.length !== 8 || !/^\d+$/.test(formData.dni)) {
+         setApiError('El DNI debe tener exactamente 8 dígitos numéricos');
+         return;
+      }
+
+      // Validar que nombres y apellidos tengan al menos 2 caracteres
+      if (formData.nombres.length < 2) {
+         setApiError('Los nombres deben tener al menos 2 caracteres');
+         return;
+      }
+
+      if (formData.apellidos.length < 2) {
+         setApiError('Los apellidos deben tener al menos 2 caracteres');
+         return;
+      }
+
+      // Validar que dirección tenga al menos 10 caracteres (requisito de la API)
+      if (formData.direccion.length < 10) {
+         setApiError('La dirección debe tener al menos 10 caracteres');
+         return;
+      }
+
       if (!formData.telefonos.some(tel => tel.number.trim() !== '')) {
          setApiError('Debe agregar al menos un teléfono');
          return;
+      }
+
+      // Validar que cada teléfono sea exactamente 9 dígitos y comience con 9 (validación peruana)
+      const telefonosValidos = formData.telefonos.filter(tel => tel.number.trim() !== '');
+      for (let tel of telefonosValidos) {
+         if (!/^\d{9}$/.test(tel.number)) {
+            setApiError('Los teléfonos deben ser exactamente 9 dígitos numéricos');
+            return;
+         }
+         if (!tel.number.startsWith('9')) {
+            setApiError('Los teléfonos deben empezar con 9 (número móvil peruano)');
+            return;
+         }
       }
 
       setLoading(true);
@@ -97,15 +133,29 @@ export const AddClienteMinorista = ({ open, onClose, onSuccess }: Props) => {
       try {
          console.log('📤 Enviando datos del cliente minorista:', formData);
          
-         // Preparar los datos para la API
-         const clienteData = {
-            ...formData,
-            telefonos: formData.telefonos.filter(tel => tel.number.trim() !== '')
-         };
+         // Crear FormData para enviar datos correctamente
+         const formDataToSend = new FormData();
          
-         console.log('📤 Datos preparados para API:', clienteData);
+         // Agregar datos básicos
+         formDataToSend.append('tipoCliente', 'Minorista');
+         formDataToSend.append('nombre', formData.nombres);
+         formDataToSend.append('apellidos', formData.apellidos);
+         formDataToSend.append('dni', formData.dni);
+         formDataToSend.append('direccion', formData.direccion);
          
-         const response = await clientesApiService.crearClienteMinorista(clienteData);
+         // Nota: Las coordenadas y fotos se agregarán desde la app móvil
+         
+         // Agregar teléfonos válidos
+         const telefonosValidos = formData.telefonos.filter(tel => tel.number.trim() !== '');
+         telefonosValidos.forEach((tel, index) => {
+            formDataToSend.append(`telefonos[${index}][number]`, tel.number);
+            formDataToSend.append(`telefonos[${index}][description]`, tel.description);
+         });
+
+         console.log('📤 FormData preparado para API de customers...');
+         
+         // Llamada a la nueva API mejorada
+         const response = await clientesApiService.crearClienteConFotosYCoordenadas(formDataToSend);
          console.log('✅ Cliente minorista creado exitosamente:', response);
          
          // Verificar si la respuesta indica éxito
@@ -142,11 +192,15 @@ export const AddClienteMinorista = ({ open, onClose, onSuccess }: Props) => {
             if (error.message.includes('Failed to fetch') || error.message.includes('NetworkError')) {
                errorMessage = 'No se pudo conectar con el servidor. Verifique su conexión a internet.';
             } else if (error.message.includes('400')) {
-               errorMessage = 'Datos inválidos. Verifique la información ingresada.';
+               errorMessage = 'Datos inválidos. Verifique que todos los campos sean correctos.';
+            } else if (error.message.includes('422')) {
+               errorMessage = 'Datos enviados no válidos para la API.';
             } else if (error.message.includes('500')) {
                errorMessage = 'Error interno del servidor. Intente más tarde.';
             } else if (error.message.includes('timeout')) {
                errorMessage = 'La conexión tardó demasiado. Intente nuevamente.';
+            } else if (error.message.includes('Error al crear el cliente:')) {
+               errorMessage = error.message; // Usar el mensaje detallado del servicio
             } else {
                errorMessage = `Error: ${error.message}`;
             }
@@ -307,11 +361,11 @@ export const AddClienteMinorista = ({ open, onClose, onSuccess }: Props) => {
                               fullWidth
                               color="success"
                               size="lg"
-                              placeholder="Ingrese número (7-12 dígitos)"
+                              placeholder="9xxxxxxxx (9 dígitos)"
                               label="Número de Teléfono"
                               value={telefono.number}
                               onChange={(e) => handleTelefonoChange(index, 'number', e.target.value)}
-                              maxLength={12}
+                              maxLength={9}
                            />
                         </Grid>
 

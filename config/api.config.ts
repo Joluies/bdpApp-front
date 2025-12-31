@@ -17,10 +17,10 @@ export const API_CONFIG = {
   // Endpoints disponibles
   ENDPOINTS: {
     CUSTOMERS: {
-      CREATE: '/client',      // ✅ Endpoint correcto para crear (POST)
-      LIST: '/client',               // ✅ Endpoint correcto para listar (GET)
-      UPDATE: '/client',             // ✅ Endpoint para actualizar (PUT)
-      DELETE: '/client'              // ✅ Endpoint para eliminar (DELETE)
+      CREATE: '/customers/create',      // ✅ Endpoint correcto para crear (POST)
+      LIST: '/customers',               // ✅ Endpoint correcto para listar (GET)
+      UPDATE: '/customers',             // ✅ Endpoint para actualizar (PUT)
+      DELETE: '/customers'              // ✅ Endpoint para eliminar (DELETE)
     }
   }
 };

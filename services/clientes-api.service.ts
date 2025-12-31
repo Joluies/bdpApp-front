@@ -479,138 +479,19 @@ class ClientesApiService {
       }
    }
 
-   // Obtener todos los clientes con soporte para paginación
-   async obtenerClientes(page: number = 1): Promise<RespuestaClientesAPI> {
-      console.log('🌐 Realizando llamada a API real para obtener clientes - página:', page);
-      
-      try {
-         const endpoint = `${API_CONFIG.ENDPOINTS.CUSTOMERS.LIST}?page=${page}`;
-         console.log('🌐 Realizando llamada a API real:', endpoint);
-         const response = await this.makeRequest(endpoint, 'GET');
-         console.log('📦 Respuesta de API:', response);
-         
-         // Verificar que la respuesta tenga la estructura esperada
-         if (response && response.data && Array.isArray(response.data)) {
-            // Normalizar datos para mantener compatibilidad con campos anteriores
-            const clientesNormalizados = response.data.map((cliente: any) => ({
-               ...cliente,
-               // Asegurar que tenemos ambos campos para compatibilidad
-               razon_social: cliente.razonSocial || cliente.razon_social,
-               razonSocial: cliente.razonSocial || cliente.razon_social,
-               // Asegurar que siempre tenemos un array de teléfonos
-               telefonos: cliente.telefonos || []
-            }));
-            
-            const respuestaNormalizada: RespuestaClientesAPI = {
-               data: clientesNormalizados,
-               links: response.links || {
-                  first: "",
-                  last: "",
-                  prev: null,
-                  next: null
-               },
-               meta: response.meta || {
-                  current_page: 1,
-                  from: 1,
-                  last_page: 1,
-                  links: [],
-                  path: "",
-                  per_page: 10,
-                  to: clientesNormalizados.length,
-                  total: clientesNormalizados.length
-               },
-               success: response.success !== false
-            };
-            
-            console.log('📦 Respuesta normalizada:', respuestaNormalizada);
-            return respuestaNormalizada;
-         } else if (response && response.clientes && Array.isArray(response.clientes)) {
-            // Mantener compatibilidad con formato anterior (sin paginación)
-            console.log('📦 Formato anterior detectado, adaptando...');
-            return {
-               data: response.clientes,
-               links: {
-                  first: "",
-                  last: "",
-                  prev: null,
-                  next: null
-               },
-               meta: {
-                  current_page: 1,
-                  from: 1,
-                  last_page: 1,
-                  links: [],
-                  path: "",
-                  per_page: response.clientes.length,
-                  to: response.clientes.length,
-                  total: response.clientes.length
-               },
-               success: true
-            };
-         } else if (Array.isArray(response)) {
-            // Por si acaso la API retorna directamente el array
-            console.log('📦 Array directo detectado, adaptando...');
-            return {
-               data: response,
-               links: {
-                  first: "",
-                  last: "",
-                  prev: null,
-                  next: null
-               },
-               meta: {
-                  current_page: 1,
-                  from: 1,
-                  last_page: 1,
-                  links: [],
-                  path: "",
-                  per_page: response.length,
-                  to: response.length,
-                  total: response.length
-               },
-               success: true
-            };
-         } else {
-            console.warn('Formato de respuesta inesperado de la API:', response);
-            throw new Error('Formato de respuesta inesperado de la API');
-         }
-      } catch (error) {
-         console.error('Error al obtener clientes:', error);
-         throw error;
-      }
+   // Método auxiliar para obtener solo la lista de clientes mayoristas
+   async obtenerListaMayoristas(): Promise<ClienteAPIReal[]> {
+      return await this.obtenerClientesPorTipo('Mayorista');
    }
 
-   // Método auxiliar para obtener solo la lista de clientes (sin metadatos)
-   async obtenerListaClientes(page: number = 1): Promise<ClienteAPIReal[]> {
-      const respuesta = await this.obtenerClientes(page);
-      return respuesta.data;
-   }
-
-   // Método para obtener todos los clientes de todas las páginas
-   async obtenerTodosLosClientes(): Promise<ClienteAPIReal[]> {
-      let todosLosClientes: ClienteAPIReal[] = [];
-      let paginaActual = 1;
-      let ultimaPagina = 1;
-
-      try {
-         do {
-            const respuesta = await this.obtenerClientes(paginaActual);
-            todosLosClientes = [...todosLosClientes, ...respuesta.data];
-            ultimaPagina = respuesta.meta.last_page;
-            paginaActual++;
-         } while (paginaActual <= ultimaPagina);
-
-         console.log(`📦 Total de clientes obtenidos: ${todosLosClientes.length}`);
-         return todosLosClientes;
-      } catch (error) {
-         console.error('Error al obtener todos los clientes:', error);
-         throw error;
-      }
+   // Método auxiliar para obtener solo la lista de clientes minoristas
+   async obtenerListaMinoristas(): Promise<ClienteAPIReal[]> {
+      return await this.obtenerClientesPorTipo('Minorista');
    }
 
    // Obtener cliente por ID
    async obtenerClientePorId(id: string): Promise<any> {
-      return await this.makeRequest(`/client/${id}`, 'GET');
+      return await this.makeRequest(`/customers/${id}`, 'GET');
    }
 
    // Actualizar cliente
@@ -618,7 +499,7 @@ class ClientesApiService {
       try {
          console.log(`📤 Actualizando cliente ID: ${id}`, clienteData);
          
-         const result = await this.makeRequest(`/client/${id}`, 'PUT', clienteData);
+         const result = await this.makeRequest(`/customers/${id}`, 'PUT', clienteData);
          
          console.log('✅ Cliente actualizado exitosamente:', result);
          return {
@@ -637,7 +518,7 @@ class ClientesApiService {
       try {
          console.log(`📤 Eliminando cliente ID: ${id}`);
          
-         const result = await this.makeRequest(`/client/${id}`, 'DELETE');
+         const result = await this.makeRequest(`/customers/${id}`, 'DELETE');
          
          console.log('✅ Cliente eliminado exitosamente:', result);
          return {
@@ -663,7 +544,7 @@ class ClientesApiService {
          const controller = new AbortController();
          const timeoutId = setTimeout(() => controller.abort(), 5000);
          
-         const response = await fetch(buildApiUrl('/client'), {
+         const response = await fetch(buildApiUrl('/customers'), {
             method: 'GET',
             headers: {
                'Content-Type': 'application/json',
@@ -706,42 +587,6 @@ class ClientesApiService {
       }
    }
 
-   // Obtener clientes por tipo
-   async obtenerClientesPorTipo(tipo: 'Mayorista' | 'Minorista'): Promise<ClienteAPIReal[]> {
-      const todosLosClientes = await this.obtenerTodosLosClientes();
-      return todosLosClientes.filter((cliente: ClienteAPIReal) => cliente.tipoCliente === tipo);
-   }
-
-   // Buscar clientes por nombre, apellidos o DNI
-   async buscarClientes(termino: string, page: number = 1): Promise<RespuestaClientesAPI> {
-      // Si tenemos un endpoint de búsqueda en la API, usarlo
-      // Por ahora, obtenemos todos y filtramos localmente
-      const respuesta = await this.obtenerClientes(page);
-      
-      if (!termino.trim()) {
-         return respuesta;
-      }
-
-      const terminoLower = termino.toLowerCase();
-      const clientesFiltrados = respuesta.data.filter(cliente => 
-         cliente.nombre.toLowerCase().includes(terminoLower) ||
-         cliente.apellidos.toLowerCase().includes(terminoLower) ||
-         cliente.dni.includes(termino) ||
-         (cliente.ruc && cliente.ruc.includes(termino)) ||
-         (cliente.razonSocial && cliente.razonSocial.toLowerCase().includes(terminoLower))
-      );
-
-      return {
-         ...respuesta,
-         data: clientesFiltrados,
-         meta: {
-            ...respuesta.meta,
-            total: clientesFiltrados.length,
-            to: clientesFiltrados.length
-         }
-      };
-   }
-
    // Obtener estadísticas de clientes
    async obtenerEstadisticasClientes(): Promise<{
       total: number;
@@ -751,27 +596,23 @@ class ClientesApiService {
       porcentajeMinoristas: number;
    }> {
       try {
-         const clientes = await this.obtenerTodosLosClientes();
-         const mayoristas = clientes.filter(c => c.tipoCliente === 'Mayorista').length;
-         const minoristas = clientes.filter(c => c.tipoCliente === 'Minorista').length;
-         const total = clientes.length;
-
+         const mayoristas = await this.obtenerClientesPorTipo('Mayorista');
+         const minoristas = await this.obtenerClientesPorTipo('Minorista');
+         
+         const total = mayoristas.length + minoristas.length;
+         const porcentajeMayoristas = total > 0 ? (mayoristas.length / total) * 100 : 0;
+         const porcentajeMinoristas = total > 0 ? (minoristas.length / total) * 100 : 0;
+         
          return {
             total,
-            mayoristas,
-            minoristas,
-            porcentajeMayoristas: total > 0 ? Math.round((mayoristas / total) * 100) : 0,
-            porcentajeMinoristas: total > 0 ? Math.round((minoristas / total) * 100) : 0
+            mayoristas: mayoristas.length,
+            minoristas: minoristas.length,
+            porcentajeMayoristas,
+            porcentajeMinoristas
          };
       } catch (error) {
-         console.error('Error al obtener estadísticas:', error);
-         return {
-            total: 0,
-            mayoristas: 0,
-            minoristas: 0,
-            porcentajeMayoristas: 0,
-            porcentajeMinoristas: 0
-         };
+         console.error('❌ Error al obtener estadísticas:', error);
+         throw error;
       }
    }
 
@@ -831,36 +672,191 @@ class ClientesApiService {
       };
    }
 
-   // Método de prueba para verificar que todo funciona
-   async pruebaCompleta(): Promise<void> {
-      console.log('🧪 === PRUEBA COMPLETA DEL SERVICIO ===');
-      
-      // 1. Verificar configuración
-      console.log('1️⃣ Verificando configuración...');
-      console.log('Config:', currentConfig);
-      console.log('NODE_ENV:', process.env.NODE_ENV);
-      
-      // 2. Probar obtener clientes
-      console.log('2️⃣ Probando obtener clientes...');
-      try {
-         const clientes = await this.obtenerClientes(1);
-         console.log('✅ Clientes obtenidos:', clientes.data.length);
-         console.log('📋 Primeros 3 clientes:', clientes.data.slice(0, 3));
-      } catch (error) {
-         console.error('❌ Error al obtener clientes:', error);
-      }
-      
-      // 3. Probar creación
-      console.log('3️⃣ Configuración de creación...');
-      console.log('Endpoint CREATE:', API_CONFIG.ENDPOINTS.CUSTOMERS.CREATE);
-      
-      console.log('🧪 === FIN DE PRUEBA COMPLETA ===');
-   }
    private normalizarTelefonos(telefonos: any[]): any[] {
       return telefonos.map(tel => ({
          number: tel.number || tel.numero,  // La API espera 'number'
          description: tel.description
       }));
+   }
+
+   /**
+    * Crear cliente con soporte para fotos y coordenadas (FormData)
+    */
+   async crearClienteConFotosYCoordenadas(formData: FormData): Promise<any> {
+      try {
+         const controller = new AbortController();
+         const timeoutId = setTimeout(() => controller.abort(), currentConfig.TIMEOUT);
+
+         const url = buildApiUrl(API_CONFIG.ENDPOINTS.CUSTOMERS.CREATE);
+
+         console.log('📤 Enviando cliente con fotos y coordenadas');
+         console.log('🔗 URL completa:', url);
+
+         // Loguear el contenido del FormData
+         console.log('📋 Contenido de FormData:');
+         for (const [key, value] of (formData as any).entries()) {
+            if (value instanceof File) {
+               console.log(`  ${key}: [File: ${value.name}]`);
+            } else {
+               console.log(`  ${key}: ${value}`);
+            }
+         }
+
+         const response = await fetch(url, {
+            method: 'POST',
+            // NO incluir Content-Type, el navegador lo hace automáticamente con multipart/form-data
+            headers: {
+               'Accept': 'application/json',
+            },
+            mode: 'cors',
+            body: formData,
+            signal: controller.signal,
+         });
+
+         clearTimeout(timeoutId);
+
+         console.log('📬 Response status:', response.status);
+         console.log('📬 Response ok:', response.ok);
+         console.log('📬 Response statusText:', response.statusText);
+
+         let data: any;
+         try {
+            data = await response.json();
+            console.log('📦 Response data:', JSON.stringify(data, null, 2));
+         } catch (e) {
+            console.error('❌ No se pudo parsear JSON:', e);
+            throw new Error(`Error al parsear respuesta: ${response.statusText}`);
+         }
+
+         if (!response.ok) {
+            console.error('❌ Respuesta no OK (status no 2xx)');
+            console.error('❌ Status:', response.status);
+            console.error('❌ StatusText:', response.statusText);
+            console.error('❌ Data completo:', data);
+            
+            // Extraer mensaje de error más detallado
+            let errorMsg = `Error ${response.status}: ${response.statusText}`;
+            
+            if (data?.message) {
+               errorMsg = data.message;
+            } else if (data?.error) {
+               errorMsg = data.error;
+            } else if (data?.errors) {
+               // Si hay errores de validación
+               if (typeof data.errors === 'object') {
+                  const errorMessages = Object.values(data.errors)
+                     .flat()
+                     .join('; ');
+                  errorMsg = `Errores de validación: ${errorMessages}`;
+               } else {
+                  errorMsg = String(data.errors);
+               }
+            }
+            
+            console.error('❌ Mensaje de error final:', errorMsg);
+            throw new Error(errorMsg);
+         }
+
+         console.log('✅ Cliente creado exitosamente');
+         console.log('✅ Respuesta success:', data?.success);
+         
+         return {
+            success: true,
+            message: data?.message || 'Cliente creado exitosamente',
+            data: data?.data || data
+         };
+      } catch (error) {
+         console.error('❌ Error completo al crear cliente:', error);
+         console.error('❌ Error instanceof Error:', error instanceof Error);
+         console.error('❌ Error message:', error instanceof Error ? error.message : String(error));
+         
+         // Re-lanzar con contexto mejorado
+         if (error instanceof Error) {
+            throw new Error(`Error al crear el cliente: ${error.message}`);
+         }
+         throw new Error(`Error desconocido al crear el cliente: ${String(error)}`);
+      }
+   }
+
+   /**
+    * Actualizar cliente con soporte para fotos y coordenadas (FormData)
+    */
+   async actualizarClienteConFotosYCoordenadas(id: string, formData: FormData): Promise<any> {
+      try {
+         const controller = new AbortController();
+         const timeoutId = setTimeout(() => controller.abort(), currentConfig.TIMEOUT);
+
+         const url = buildApiUrl(`${API_CONFIG.ENDPOINTS.CUSTOMERS.UPDATE}/${id}`);
+
+         console.log('📤 Actualizando cliente con fotos y coordenadas:', url);
+
+         const response = await fetch(url, {
+            method: 'PUT',
+            headers: {
+               'Accept': 'application/json',
+            },
+            mode: 'cors',
+            body: formData,
+            signal: controller.signal,
+         });
+
+         clearTimeout(timeoutId);
+
+         const data = await response.json();
+
+         if (!response.ok) {
+            throw new Error(data?.message || `Error ${response.status}`);
+         }
+
+         return {
+            success: true,
+            message: data.message || 'Cliente actualizado exitosamente',
+            data: data.data || data
+         };
+      } catch (error) {
+         console.error('❌ Error al actualizar cliente con fotos:', error);
+         throw error;
+      }
+   }
+
+   /**
+    * Obtener clientes por tipo (con validación correcta del tipo)
+    */
+   async obtenerClientesPorTipo(tipo: 'Mayorista' | 'Minorista'): Promise<ClienteAPIReal[]> {
+      try {
+         const tipoParam = tipo === 'Mayorista' ? 'Mayorista' : 'Minorista';
+         const url = `${API_CONFIG.ENDPOINTS.CUSTOMERS.LIST}?tipo=${tipoParam}`;
+         
+         console.log(`🔍 Obteniendo clientes de tipo: ${tipo}`);
+         console.log(`📍 URL: ${buildApiUrl(url)}`);
+         
+         const result = await this.makeRequest(url, 'GET');
+         
+         console.log('📦 Respuesta completa:', result);
+         
+         // La respuesta viene como: { success: true, data: { data: [...], links, meta } }
+         // Extraer correctamente los datos
+         let clientes: ClienteAPIReal[] = [];
+         
+         if (result?.data?.data && Array.isArray(result.data.data)) {
+            clientes = result.data.data;
+            console.log(`✅ Clientes extraídos de result.data.data: ${clientes.length}`);
+         } else if (result?.data && Array.isArray(result.data)) {
+            clientes = result.data;
+            console.log(`✅ Clientes extraídos de result.data: ${clientes.length}`);
+         } else {
+            console.warn('⚠️ Estructura de respuesta inesperada:', result);
+         }
+         
+         console.log(`✅ Total de clientes de tipo ${tipo}: ${clientes.length}`);
+         console.log('📋 Clientes obtenidos:', clientes);
+         
+         return clientes;
+      } catch (error) {
+         console.error('❌ Error al obtener clientes por tipo:', error);
+         console.error('❌ Error message:', error instanceof Error ? error.message : error);
+         throw error; // Lanzar el error en lugar de retornar array vacío
+      }
    }
 }
 

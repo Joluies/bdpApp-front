@@ -50,13 +50,19 @@ export const ClientesTable = ({ tipoCliente, apiConnected }: Props) => {
          console.log('🔄 Iniciando carga de clientes tipo:', tipoCliente);
          
          try {
-            const clientesData = await clientesApiService.obtenerClientesPorTipo(
-               tipoCliente === TipoCliente.MAYORISTA ? 'Mayorista' : 'Minorista'
-            );
+            const tipoParam = tipoCliente === TipoCliente.MAYORISTA ? 'Mayorista' : 'Minorista';
+            console.log(`📍 Llamando obtenerClientesPorTipo con tipo: ${tipoParam}`);
+            
+            const clientesData = await clientesApiService.obtenerClientesPorTipo(tipoParam);
+            
             console.log('✅ Clientes cargados:', clientesData);
+            console.log('📊 Total de clientes:', clientesData.length);
+            
             setClientes(clientesData);
          } catch (error: any) {
             console.error('❌ Error al cargar clientes:', error);
+            console.error('❌ Error message:', error.message);
+            
             setError(error.message || 'Error al cargar los clientes');
             setClientes([]);
          } finally {
@@ -135,9 +141,40 @@ export const ClientesTable = ({ tipoCliente, apiConnected }: Props) => {
       setLoadingEdicion(true);
       try {
          console.log('Guardando cambios del cliente:', editandoCliente);
-         await clientesApiService.actualizarCliente(
+         
+         // Crear FormData para enviar datos con archivos
+         const formData = new FormData();
+         
+         // Agregar datos básicos
+         formData.append('tipoCliente', editandoCliente.tipoCliente);
+         formData.append('nombre', editandoCliente.nombre || '');
+         formData.append('apellidos', editandoCliente.apellidos || '');
+         formData.append('direccion', editandoCliente.direccion || '');
+         
+         // Agregar campos específicos por tipo
+         if (editandoCliente.tipoCliente === 'Mayorista') {
+            formData.append('ruc', editandoCliente.ruc || '');
+            formData.append('razonSocial', editandoCliente.razonSocial || '');
+         } else {
+            formData.append('dni', editandoCliente.dni || '');
+         }
+         
+         // Agregar teléfonos si existen
+         if (editandoCliente.telefonos && editandoCliente.telefonos.length > 0) {
+            editandoCliente.telefonos.forEach((tel, index) => {
+               formData.append(`telefonos[${index}][number]`, tel.number || tel.numero || '');
+               formData.append(`telefonos[${index}][description]`, tel.description || '');
+            });
+         }
+         
+         // TODO: Agregar soporte para fotos y coordenadas aquí
+         // formData.append('fotosFachada', file);
+         // formData.append('coordenadas[latitud]', lat);
+         // formData.append('coordenadas[longitud]', lng);
+         
+         await clientesApiService.actualizarClienteConFotosYCoordenadas(
             editandoCliente.idCliente.toString(),
-            editandoCliente
+            formData
          );
          alert('Cliente actualizado exitosamente');
          setVisibleModalEditar(false);
@@ -602,6 +639,22 @@ export const ClientesTable = ({ tipoCliente, apiConnected }: Props) => {
                         </>
                      )}
 
+                     {/* Añadir Foto de Fachada */}
+                     <Flex direction="column" css={{ gap: '$1' }}>
+                        <Text size={14} weight="bold">Añadir Foto de Fachada</Text>
+                        <Button
+                           auto
+                           color="success"
+                           css={{ width: '60px', height: '60px', p: 0 }}
+                           onPress={() => {
+                              // Aquí va la lógica para agregar foto
+                              console.log('Agregar foto de fachada');
+                           }}
+                        >
+                           +
+                        </Button>
+                     </Flex>
+
                      <Flex direction="column" css={{ gap: '$1' }}>
                         <Text size={14} weight="bold">Dirección</Text>
                         <Input
@@ -610,6 +663,75 @@ export const ClientesTable = ({ tipoCliente, apiConnected }: Props) => {
                            value={editandoCliente.direccion || ''}
                            onChange={(e) => actualizarCampoEdicion('direccion', e.target.value)}
                         />
+                     </Flex>
+
+                     {/* Campos de Teléfono - Array dinámico */}
+                     <Flex direction="column" css={{ gap: '$2' }}>
+                        <Text size={14} weight="bold">Teléfonos</Text>
+                        {editandoCliente.telefonos && editandoCliente.telefonos.length > 0 ? (
+                           <Flex direction="column" css={{ gap: '$2', width: '100%' }}>
+                              {editandoCliente.telefonos.map((tel, index) => (
+                                 <Grid.Container gap={1} key={index} justify="flex-start">
+                                    <Grid xs={12} sm={6}>
+                                       <Input
+                                          fullWidth
+                                          bordered
+                                          label="Número"
+                                          placeholder="(51) 123456789"
+                                          value={tel.number || tel.numero || ''}
+                                          onChange={(e) => {
+                                             const newTelefonos = [...editandoCliente.telefonos];
+                                             newTelefonos[index] = {
+                                                ...newTelefonos[index],
+                                                number: e.target.value,
+                                                numero: e.target.value
+                                             };
+                                             actualizarCampoEdicion('telefonos', newTelefonos);
+                                          }}
+                                       />
+                                    </Grid>
+                                    <Grid xs={12} sm={6}>
+                                       <Input
+                                          fullWidth
+                                          bordered
+                                          label="Tipo/Descripción"
+                                          placeholder="Casa, Personal, Tienda..."
+                                          value={tel.description || ''}
+                                          onChange={(e) => {
+                                             const newTelefonos = [...editandoCliente.telefonos];
+                                             newTelefonos[index] = {
+                                                ...newTelefonos[index],
+                                                description: e.target.value
+                                             };
+                                             actualizarCampoEdicion('telefonos', newTelefonos);
+                                          }}
+                                       />
+                                    </Grid>
+                                 </Grid.Container>
+                              ))}
+                           </Flex>
+                        ) : (
+                           <Text css={{ fontSize: '$sm', color: '$accents7' }}>
+                              Sin teléfonos registrados
+                           </Text>
+                        )}
+                     </Flex>
+
+                     {/* Añadir Ubicación */}
+                     <Flex direction="column" css={{ gap: '$1' }}>
+                        <Text size={14} weight="bold">Ubicación</Text>
+                        <Button
+                           auto
+                           flat
+                           color="default"
+                           css={{ justifyContent: 'flex-start', width: '100%' }}
+                           onPress={() => {
+                              // Aquí va la lógica para agregar ubicación
+                              console.log('Agregar ubicación');
+                           }}
+                        >
+                           📍 Añadir Ubicación
+                        </Button>
                      </Flex>
                   </Flex>
                )}
