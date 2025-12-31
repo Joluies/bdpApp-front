@@ -211,13 +211,10 @@ export const ProductsContent = () => {
 
         // Preparar datos para la API - Asegurar que todos los campos tengan valores
         const apiUpdateData = {
-          nombre: datosActualizados?.nombre ?? "",
-          descripcion: datosActualizados?.descripcion ?? "",
-          presentacion: datosActualizados?.presentacion ?? "",
-          precioUnitario:
-            datosActualizados?.precio_unitario ??
-            datosActualizados?.precioUnitario ??
-            0,
+          nombre: updatedData?.name ?? "",
+          descripcion: updatedData?.description ?? "",
+          presentacion: updatedData?.presentation ?? "",
+          precioUnitario: updatedData?.precio_unitario ?? 0,
         };
         console.log("📊 Datos a enviar al API:", apiUpdateData);
         console.log("🔄 Enviando actualización con imagen a la API...");
