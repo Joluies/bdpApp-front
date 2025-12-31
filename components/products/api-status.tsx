@@ -31,7 +31,7 @@ export const APIStatus: React.FC<APIStatusProps> = ({ isConnected, isLoading, la
                
                <Text size="$xs" css={{ color: '$accents7' }}>
                   {isConnected 
-                     ? `Datos desde: bebidasdelperuapp.com/api/${typeof productsCount === 'number' ? ` • ${productsCount} productos` : ''}${lastUpdated ? ` • ${lastUpdated.toLocaleTimeString()}` : ''}`
+                     ? `Datos desde: api.bebidasdelperuapp.com/api/${typeof productsCount === 'number' ? ` • ${productsCount} productos` : ''}${lastUpdated ? ` • ${lastUpdated.toLocaleTimeString()}` : ''}`
                      : 'Usando datos de demostración locales'
                   }
                </Text>

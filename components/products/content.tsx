@@ -172,28 +172,89 @@ export const ProductsContent = () => {
    };
 
    // Función para actualizar un producto
-   const handleUpdateProduct = async (id: number, updatedData: Partial<ProductLocal>) => {
+   const handleUpdateProduct = async (id: number, updatedData: Partial<ProductLocal> & { imageFile?: File | null }) => {
       try {
-         // Convertir datos locales al formato de la API
-         const apiUpdateData = productsApiService.mapToApi(updatedData);
-
-         const updatedProduct = await productsApiService.updateProduct(id, apiUpdateData);
+         console.log('📝 Iniciando actualización de producto:', { id, updatedData });
          
-         if (updatedProduct) {
-            // Convertir el producto actualizado a formato local
-            const localProduct = mapApiProductToLocal(updatedProduct);
-            setProducts(prev => prev.map(p => p.id === id ? localProduct : p));
+         // Si hay un archivo de imagen, usar el método con FormData
+         if (updatedData.imageFile) {
+            console.log('📸 Detectada imagen para actualizar');
+            console.log('📋 Campos disponibles en updatedData:', Object.keys(updatedData));
+            
+            // Preparar datos para la API - Asegurar que todos los campos tengan valores
+            const apiUpdateData = {
+               nombre: updatedData.name || updatedData.nombre || '',
+               descripcion: updatedData.description || updatedData.descripcion || '',
+               presentacion: updatedData.presentation || updatedData.presentacion || '',
+               precioUnitario: updatedData.precio_unitario || updatedData.precioUnitario || 0,
+               precioMayorista: updatedData.precio_mayorista || updatedData.precioMayorista || 0,
+               stock: updatedData.stock || 0
+            };
+            
+            console.log('📊 Datos a enviar al API:', apiUpdateData);
+            console.log('🔄 Enviando actualización con imagen a la API...');
+            console.log('🔗 URL completa: ' + `${process.env.NEXT_PUBLIC_API_URL}/api/products/${id}`);
+            console.log('📁 ImageFile disponible:', !!updatedData.imageFile);
+            if (updatedData.imageFile) {
+               console.log('   - Nombre:', updatedData.imageFile.name);
+               console.log('   - Tipo:', updatedData.imageFile.type);
+               console.log('   - Tamaño:', updatedData.imageFile.size);
+            } else {
+               console.log('   ⚠️ imageFile es null/undefined!');
+            }
+
+            // 🔥 LLAMADA REAL AL API CON IMAGEN
+            const updatedProduct = await productsApiService.updateProductWithImage(
+               id, 
+               apiUpdateData, 
+               updatedData.imageFile
+            );
+
+            if (updatedProduct) {
+               console.log('✅ Producto actualizado con imagen en la API');
+               console.log('📦 Producto API recibido:', updatedProduct);
+               // Convertir el producto actualizado a formato local
+               const localProduct = mapApiProductToLocal(updatedProduct);
+               console.log('🖼️ Producto local después de mapeo:', localProduct);
+               setProducts(prev => prev.map(p => p.id === id ? localProduct : p));
+            } else {
+               console.log('⚠️ API no devolvió producto actualizado, actualizando localmente');
+               // Fallback a actualizar localmente
+               const dataWithoutFile = { ...updatedData };
+               delete dataWithoutFile.imageFile;
+               setProducts(prev => prev.map(p => 
+                  p.id === id ? { ...p, ...dataWithoutFile } : p
+               ));
+            }
          } else {
-            // Fallback a actualizar localmente
-            setProducts(prev => prev.map(p => 
-               p.id === id ? { ...p, ...updatedData } : p
-            ));
+            // Sin imagen, usar el método normal
+            console.log('📝 Actualización sin imagen, usando método estándar');
+            
+            // Convertir datos locales al formato de la API
+            const apiUpdateData = productsApiService.mapToApi(updatedData);
+
+            const updatedProduct = await productsApiService.updateProduct(id, apiUpdateData);
+            
+            if (updatedProduct) {
+               console.log('✅ Producto actualizado en la API');
+               // Convertir el producto actualizado a formato local
+               const localProduct = mapApiProductToLocal(updatedProduct);
+               setProducts(prev => prev.map(p => p.id === id ? localProduct : p));
+            } else {
+               console.log('⚠️ API no devolvió producto, actualizando localmente');
+               // Fallback a actualizar localmente
+               setProducts(prev => prev.map(p => 
+                  p.id === id ? { ...p, ...updatedData } : p
+               ));
+            }
          }
       } catch (error) {
-         console.error('Error al actualizar producto:', error);
+         console.error('❌ Error al actualizar producto:', error);
          // Fallback a actualizar localmente
+         const dataWithoutFile = { ...updatedData };
+         delete dataWithoutFile.imageFile;
          setProducts(prev => prev.map(p => 
-            p.id === id ? { ...p, ...updatedData } : p
+            p.id === id ? { ...p, ...dataWithoutFile } : p
          ));
       }
    };

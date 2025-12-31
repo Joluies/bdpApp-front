@@ -1,7 +1,11 @@
 // Configuración de la API para diferentes entornos
+const isDevelopment = process.env.NODE_ENV === 'development';
+
 export const API_CONFIG = {
-  // URL base de la API
-  BASE_URL: 'https://api.bebidasdelperuapp.com/api',
+  // URL base de la API - dinámica según el entorno
+  BASE_URL: isDevelopment 
+    ? 'https://api.bebidasdelperuapp.com/api'
+    : 'https://api.bebidasdelperuapp.com/api',
   
   // Configuración por entorno
   DEVELOPMENT: {
@@ -21,6 +25,12 @@ export const API_CONFIG = {
       LIST: '/customers',               // ✅ Endpoint correcto para listar (GET)
       UPDATE: '/customers',             // ✅ Endpoint para actualizar (PUT)
       DELETE: '/customers'              // ✅ Endpoint para eliminar (DELETE)
+    },
+    PRODUCTS: {
+      CREATE: '/products/create',       // ✅ Endpoint correcto para crear (POST)
+      LIST: '/products',                // ✅ Endpoint correcto para listar (GET)
+      UPDATE: '/products',              // ✅ Endpoint para actualizar (PUT)
+      DELETE: '/products'               // ✅ Endpoint para eliminar (DELETE)
     }
   }
 };

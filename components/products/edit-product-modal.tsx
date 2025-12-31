@@ -106,7 +106,7 @@ export const EditProductModal: React.FC<EditProductModalProps> = ({
          return;
       }
 
-      const updatedData: Partial<ProductLocal> = {
+      const updatedData: Partial<ProductLocal> & { imageFile?: File | null } = {
          name: formData.name,
          description: formData.description || 'Sin descripción',
          presentation: formData.presentation,
@@ -115,7 +115,8 @@ export const EditProductModal: React.FC<EditProductModalProps> = ({
          stock: parseInt(formData.stock),
          image: formData.image || '/images/products/default.jpg',
          category: Array.from(selectedCategory)[0] as string,
-         status: Array.from(selectedStatus)[0] as 'Disponible' | 'Agotado' | 'Descontinuado'
+         status: Array.from(selectedStatus)[0] as 'Disponible' | 'Agotado' | 'Descontinuado',
+         imageFile: imageFile // Pasar el archivo de imagen
       };
 
       await onUpdateProduct(product.id, updatedData);

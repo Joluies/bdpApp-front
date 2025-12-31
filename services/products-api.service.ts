@@ -1,5 +1,7 @@
 // Servicio para la API real de productos de Bebidas del Perú
-const API_BASE_URL = process.env.REACT_APP_API_BASE_URL || 'http://localhost:3000/api';
+import { API_CONFIG } from '../config/api.config';
+
+const API_BASE_URL = API_CONFIG.BASE_URL;
 
 export interface ApiProduct {
   idProducto: number;
@@ -236,6 +238,113 @@ class ProductsApiService {
       return response as ApiProduct;
     } catch (error) {
       console.error('Error actualizando producto:', error);
+      throw error;
+    }
+  }
+
+  // Actualizar un producto con imagen (FormData)
+  async updateProductWithImage(id: number, productData: any, imageFile?: File | null): Promise<ApiProduct | null> {
+    try {
+      console.log('📝 Actualizando producto con imagen:', { id, productData, hasImage: !!imageFile });
+      
+      // Crear FormData para enviar el archivo correctamente
+      const formData = new FormData();
+      
+      // Agregar _method=PUT para que Laravel interprete POST como PUT
+      formData.append('_method', 'PUT');
+      
+      // Agregar campos - Usar valores por defecto si están vacíos
+      console.log('🔧 Campos a enviar en FormData:');
+      const fieldsToAdd = {
+        nombre: productData.nombre || '',
+        descripcion: productData.descripcion || '',
+        presentacion: productData.presentacion || '',
+        precioUnitario: String(productData.precioUnitario || '0'),
+        precioMayorista: String(productData.precioMayorista || '0'),
+        stock: String(productData.stock || '0')
+      };
+      
+      // Log de cada campo
+      Object.entries(fieldsToAdd).forEach(([key, value]) => {
+        console.log(`  - ${key}: "${value}"`);
+        formData.append(key, value);
+      });
+      
+      // Agregar archivo si existe
+      if (imageFile) {
+        console.log('📸 Archivo de imagen agregado:', imageFile.name);
+        console.log('  - Tipo MIME:', imageFile.type);
+        console.log('  - Tamaño:', (imageFile.size / 1024).toFixed(2), 'KB');
+        formData.append('urlImage', imageFile);
+      }
+
+      // Hacer la petición con POST (Laravel lo interpreta como PUT gracias a _method)
+      const apiUrl = `${API_BASE_URL}/products/${id}`;
+      console.log('🔗 URL completa de actualización:', apiUrl);
+      console.log('🔗 Método HTTP: POST (con _method=PUT)');
+      
+      // ⚠️ IMPORTANTE: NO establecer Content-Type manualmente con FormData
+      // El navegador lo hará automáticamente
+      const response = await fetch(apiUrl, {
+        method: 'POST',
+        mode: 'cors',
+        body: formData,
+        headers: {
+          'Accept': 'application/json',
+          // NO incluir Content-Type - FormData lo maneja automáticamente
+        }
+      });
+
+      console.log('📊 Status de respuesta:', response.status);
+      console.log('📊 Headers de respuesta:', {
+        'content-type': response.headers.get('content-type'),
+        'content-length': response.headers.get('content-length')
+      });
+      
+      // Obtener el texto de respuesta
+      const responseText = await response.text();
+      console.log('📝 Respuesta del servidor (raw):', responseText);
+
+      // Verificar si es JSON válido
+      let result;
+      try {
+        result = JSON.parse(responseText);
+      } catch (e) {
+        console.error('❌ La respuesta no es JSON válido:', responseText.substring(0, 200));
+        throw new Error(`Error del servidor (${response.status}): La respuesta no es JSON válido.`);
+      }
+
+      console.log('🔍 Resultado de actualización:', result);
+
+      // Verificar si la respuesta indica error
+      if (!response.ok) {
+        console.error('❌ Error en la respuesta:', result);
+        throw new Error(result?.message || `Error del servidor (${response.status})`);
+      }
+
+      // Manejar diferentes formatos de respuesta
+      if (typeof result === 'object') {
+        // Formato: { product: {...} }
+        if ('product' in result && result.product) {
+          console.log('✅ Producto actualizado (formato product):', result.product);
+          return result.product as ApiProduct;
+        }
+        // Formato directo: { idProducto, nombre, ... }
+        else if ('idProducto' in result) {
+          console.log('✅ Producto actualizado (formato directo):', result);
+          return result as ApiProduct;
+        }
+        // Formato: { data: {...} }
+        else if ('data' in result && result.data) {
+          console.log('✅ Producto actualizado (formato data):', result.data);
+          return result.data as ApiProduct;
+        }
+      }
+
+      console.warn('⚠️ Formato de respuesta no reconocido pero actualización exitosa:', result);
+      return result as any;
+    } catch (error) {
+      console.error('❌ Error actualizando producto con imagen:', error);
       throw error;
     }
   }
