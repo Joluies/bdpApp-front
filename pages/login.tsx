@@ -83,7 +83,7 @@ const Login: React.FC = () => {
       <Container
         display="flex"
         alignItems="center"
-        justifyContent="center"
+        justify="center"
         css={{ minHeight: '100vh' }}
       >
         <Loading />
@@ -95,7 +95,7 @@ const Login: React.FC = () => {
     <Container
       display="flex"
       alignItems="center"
-      justifyContent="center"
+      justify="center"
       css={{
         minHeight: '100vh',
         background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
@@ -194,7 +194,7 @@ const Login: React.FC = () => {
 
             {/* Botón Login */}
             <Button
-              fullWidth
+              css={{ width: '100%' }}
               type="submit"
               color="primary"
               size="lg"
