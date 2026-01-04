@@ -199,7 +199,7 @@ export const createUsuario = async (usuario: CreateUsuarioDto): Promise<Usuario>
       nombre: usuario.nombre,
       apellido: usuario.apellido,
       tipo_usuario: usuario.tipo_usuario,
-      rol: usuario.rol,
+      role_id: usuario.role_id,
     });
     console.log('📡 URL:', url);
   }
