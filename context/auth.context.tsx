@@ -149,7 +149,7 @@ export const useAuth = (): AuthContextType => {
  */
 export const usePermiso = (permiso: string): boolean => {
   const { usuario } = useAuth();
-  return usuario?.permisos?.includes(permiso) || false;
+  return usuario?.permisos?.includes(permiso as any) || false;
 };
 
 /**
@@ -164,10 +164,10 @@ export const usePermisos = (
   if (!usuario?.permisos) return false;
 
   if (requireAll) {
-    return permisos.every((p) => usuario.permisos?.includes(p));
+    return permisos.every((p) => usuario.permisos?.includes(p as any));
   }
 
-  return permisos.some((p) => usuario.permisos?.includes(p));
+  return permisos.some((p) => usuario.permisos?.includes(p as any));
 };
 
 /**

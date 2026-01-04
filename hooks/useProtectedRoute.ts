@@ -51,8 +51,8 @@ export const usePermisosRoute = (
     const userPermisos = usuario.permisos || [];
 
     const tieneAcceso = requireAll
-      ? permisosRequeridos.every((p) => userPermisos.includes(p))
-      : permisosRequeridos.some((p) => userPermisos.includes(p));
+      ? permisosRequeridos.every((p) => userPermisos.includes(p as any))
+      : permisosRequeridos.some((p) => userPermisos.includes(p as any));
 
     if (!tieneAcceso) {
       console.log('🔒 [usePermisosRoute] Usuario sin permisos requeridos');
@@ -62,8 +62,8 @@ export const usePermisosRoute = (
 
   const userPermisos = usuario?.permisos || [];
   const tieneAcceso = requireAll
-    ? permisosRequeridos.every((p) => userPermisos.includes(p))
-    : permisosRequeridos.some((p) => userPermisos.includes(p));
+    ? permisosRequeridos.every((p) => userPermisos.includes(p as any))
+    : permisosRequeridos.some((p) => userPermisos.includes(p as any));
 
   return tieneAcceso && !cargando;
 };
