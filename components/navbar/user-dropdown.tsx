@@ -38,7 +38,7 @@ export const UserDropdown = () => {
                   as="button"
                   color="secondary"
                   size="md"
-                  name={iniciales}
+                  text={iniciales}
                   pointer
                />
             </Dropdown.Trigger>
@@ -51,7 +51,7 @@ export const UserDropdown = () => {
                }
             }}
          >
-            <Dropdown.Item key="profile" css={{height: '$18'}} disabled>
+            <Dropdown.Item key="profile" css={{height: '$18'}}>
                <Text b color="inherit" css={{d: 'flex'}}>
                   Sesión iniciada como
                </Text>

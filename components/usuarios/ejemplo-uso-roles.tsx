@@ -245,7 +245,7 @@ export const BotonConPermiso = ({
   children,
   ...buttonProps
 }: BotonConPermisoProps) => {
-  const tienePermiso = usuario.permisos?.includes(permiso);
+  const tienePermiso = usuario.permisos?.includes(permiso as any);
 
   if (!tienePermiso) {
     return (
@@ -285,8 +285,8 @@ export const SeccionProtegida = ({
   const userPermisos = usuario.permisos || [];
 
   const tieneAcceso = requireAll
-    ? permisosRequeridos.every((p) => userPermisos.includes(p))
-    : permisosRequeridos.some((p) => userPermisos.includes(p));
+    ? permisosRequeridos.every((p) => userPermisos.includes(p as any))
+    : permisosRequeridos.some((p) => userPermisos.includes(p as any));
 
   if (!tieneAcceso) {
     return (
@@ -427,7 +427,7 @@ export const EjemploPaginaDashboard = ({ usuarioLogueado }: { usuarioLogueado: U
  * Hook para verificar permisos de forma rápida
  */
 export const usePermiso = (usuario: Usuario, permiso: string): boolean => {
-  return usuario.permisos?.includes(permiso) || false;
+  return usuario.permisos?.includes(permiso as any) || false;
 };
 
 /**
@@ -441,10 +441,10 @@ export const usePermisos = (
   if (!usuario.permisos) return false;
 
   if (requireAll) {
-    return permisos.every((p) => usuario.permisos?.includes(p));
+    return permisos.every((p) => usuario.permisos?.includes(p as any));
   }
 
-  return permisos.some((p) => usuario.permisos?.includes(p));
+  return permisos.some((p) => usuario.permisos?.includes(p as any));
 };
 
 // Uso:

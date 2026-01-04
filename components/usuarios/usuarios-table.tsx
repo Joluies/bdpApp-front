@@ -92,7 +92,7 @@ export const UsuariosTable = ({ onEdit, onRefresh }: Props) => {
       const matchTipo = filtroTipo === 'todos' || usuario.tipo_usuario === filtroTipo;
 
       // Filtro por rol
-      const matchRol = filtroRol === 'todos' || usuario.rol === filtroRol;
+      const matchRol = filtroRol === 'todos' || usuario.roles?.some((r) => r.nombre === filtroRol);
 
       return matchSearch && matchTipo && matchRol;
    });
@@ -169,7 +169,8 @@ export const UsuariosTable = ({ onEdit, onRefresh }: Props) => {
             );
 
          case 'rol':
-            const rolConfig = ROLES_CONFIG[usuario.rol];
+            const rolPrimario = usuario.roles?.[0];
+            const rolConfig = rolPrimario ? (ROLES_CONFIG as any)[rolPrimario.nombre] : (ROLES_CONFIG as any)['vendedor'];
             return (
                <Flex direction="column">
                   <Text css={{ fontSize: '$sm', fontWeight: '$semibold' }}>

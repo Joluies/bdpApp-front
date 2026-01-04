@@ -421,7 +421,7 @@ export const AddUsuario = ({ open, onClose, onSuccess, usuarioToEdit, rolesDispo
                            }}
                         >
                            {rolesDelTipo.map((rol) => (
-                              <Dropdown.Item key={rol.id} value={rol.id}>
+                              <Dropdown.Item key={rol.id}>
                                  <Flex direction="column">
                                     <Text weight="bold">{rol.nombre}</Text>
                                     <Text size="$xs" color="$accents7">
