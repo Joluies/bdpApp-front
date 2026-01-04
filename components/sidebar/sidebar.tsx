@@ -111,6 +111,12 @@ export const SidebarWrapper = () => {
                         icon={<DespachoIcon />}
                         href="/despacho"
                      />
+                     <SidebarItem
+                        isActive={router.pathname === '/rutas'}
+                        title="Rutas"
+                        icon={<DespachoIcon />}
+                        href="/rutas"
+                     />
                      <CollapseItemsWithAction
                         title="Reportes"
                         icon={<ReportsIcon />}
