@@ -1,0 +1,28 @@
+# Archivos markdown de documentación (solo en raíz)
+/*.md
+!README.md
+!CHANGELOG.md
+
+# Archivos de documentación internos
+GUIA_*.md
+RESUMEN_*.md
+CAMBIOS_*.md
+DIAGRAMA_*.md
+CORRECCION_*.md
+SOLUCION_*.md
+COMIENZA_AQUI.md
+INDEX.md
+LISTA_ARCHIVOS.md
+
+# Archivos de notas
+*.txt
+!.gitkeep
+
+# Directorio de backend
+/bdp-backend/
+
+# Archivos temporales
+.DS_Store
+Thumbs.db
+*.tmp
+*.bak

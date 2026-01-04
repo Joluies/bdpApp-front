@@ -2,6 +2,7 @@ import type {AppProps} from 'next/app';
 import {createTheme, NextUIProvider} from '@nextui-org/react';
 import {ThemeProvider as NextThemesProvider} from 'next-themes';
 import {Layout} from '../components/layout/layout';
+import { AuthProvider } from '../context/auth.context';
 import { useEffect, useState } from 'react';
 
 const lightTheme = createTheme({
@@ -39,9 +40,11 @@ function MyApp({Component, pageProps}: AppProps) {
          }}
       >
          <NextUIProvider>
-            <Layout>
-               <Component {...pageProps} />
-            </Layout>
+            <AuthProvider>
+               <Layout>
+                  <Component {...pageProps} />
+               </Layout>
+            </AuthProvider>
          </NextUIProvider>
       </NextThemesProvider>
    );

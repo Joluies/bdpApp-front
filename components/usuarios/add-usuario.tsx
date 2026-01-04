@@ -16,19 +16,23 @@ import {
    UpdateUsuarioDto,
    TipoUsuario,
    Rol,
+   RolData,
    ROLES_CONFIG,
    getRolesByTipoUsuario,
+   getRolLabel,
+   getRolDescripcion,
 } from '../../types/usuarios';
-import { createUsuario, updateUsuario } from '../../services/usuarios-api.service';
+import { createUsuario, updateUsuario, asignarRolUsuario } from '../../services/usuarios-api.service';
 
 interface Props {
    open: boolean;
    onClose: () => void;
    onSuccess?: () => void;
    usuarioToEdit?: Usuario | null;
+   rolesDisponibles?: RolData[];
 }
 
-export const AddUsuario = ({ open, onClose, onSuccess, usuarioToEdit }: Props) => {
+export const AddUsuario = ({ open, onClose, onSuccess, usuarioToEdit, rolesDisponibles: rolesFromProps }: Props) => {
    const isEditMode = !!usuarioToEdit;
 
    const [formData, setFormData] = useState<CreateUsuarioDto>({
@@ -37,12 +41,21 @@ export const AddUsuario = ({ open, onClose, onSuccess, usuarioToEdit }: Props) =
       username: '',
       password: '',
       tipo_usuario: 'operativo',
-      rol: 'vendedor_mayorista',
+      role_id: undefined,
    });
 
+   const [selectedRol, setSelectedRol] = useState<Rol | null>(null);
    const [confirmPassword, setConfirmPassword] = useState('');
    const [loading, setLoading] = useState(false);
    const [apiError, setApiError] = useState<string>('');
+   const [rolesDisponibles, setRolesDisponibles] = useState<RolData[]>([]);
+
+   // Cargar roles disponibles
+   useEffect(() => {
+      if (rolesFromProps && rolesFromProps.length > 0) {
+         setRolesDisponibles(rolesFromProps);
+      }
+   }, [rolesFromProps]);
 
    // Cargar datos del usuario si es modo edición
    useEffect(() => {
@@ -52,10 +65,11 @@ export const AddUsuario = ({ open, onClose, onSuccess, usuarioToEdit }: Props) =
             nombre: usuarioToEdit.nombre,
             apellido: usuarioToEdit.apellido,
             username: usuarioToEdit.username,
-            password: '', // No cargar password por seguridad
+            password: '',
             tipo_usuario: usuarioToEdit.tipo_usuario,
-            rol: usuarioToEdit.rol,
+            role_id: usuarioToEdit.roles?.[0]?.id,
          });
+         setSelectedRol(usuarioToEdit.roles?.[0]?.nombre as Rol || null);
          setConfirmPassword('');
       } else if (open) {
          // Reset form cuando se abre en modo crear
@@ -65,32 +79,37 @@ export const AddUsuario = ({ open, onClose, onSuccess, usuarioToEdit }: Props) =
             username: '',
             password: '',
             tipo_usuario: 'operativo',
-            rol: 'vendedor_mayorista',
+            role_id: undefined,
          });
+         setSelectedRol(null);
          setConfirmPassword('');
       }
       setApiError('');
    }, [open, usuarioToEdit]);
 
-   // Actualizar rol cuando cambia el tipo de usuario
-   useEffect(() => {
-      const rolesDisponibles = getRolesByTipoUsuario(formData.tipo_usuario);
-      if (rolesDisponibles.length > 0 && !rolesDisponibles.includes(formData.rol)) {
-         setFormData(prev => ({ ...prev, rol: rolesDisponibles[0] }));
-      }
-   }, [formData.tipo_usuario]);
-
-   const handleInputChange = (field: keyof CreateUsuarioDto, value: string) => {
+   const handleInputChange = (field: keyof CreateUsuarioDto, value: string | number | undefined) => {
       setFormData(prev => ({ ...prev, [field]: value }));
    };
 
    const handleTipoUsuarioChange = (tipo: TipoUsuario) => {
-      const rolesDisponibles = getRolesByTipoUsuario(tipo);
+      const rolesDelTipo = rolesDisponibles.filter(r => r.tipo_usuario === tipo);
+      const firstRole = rolesDelTipo[0];
+
       setFormData(prev => ({
          ...prev,
          tipo_usuario: tipo,
-         rol: rolesDisponibles[0] || 'vendedor_mayorista',
+         role_id: firstRole?.id,
       }));
+      setSelectedRol(firstRole?.nombre as Rol || null);
+   };
+
+   const handleRolChange = (roleId: number) => {
+      const rolSeleccionado = rolesDisponibles.find(r => r.id === roleId);
+      setFormData(prev => ({
+         ...prev,
+         role_id: roleId,
+      }));
+      setSelectedRol(rolSeleccionado?.nombre as Rol || null);
    };
 
    const validateForm = (): string | null => {
@@ -126,6 +145,11 @@ export const AddUsuario = ({ open, onClose, onSuccess, usuarioToEdit }: Props) =
          }
       }
 
+      // Validar rol
+      if (!formData.role_id) {
+         return 'Debe seleccionar un rol';
+      }
+
       return null;
    };
 
@@ -152,7 +176,7 @@ export const AddUsuario = ({ open, onClose, onSuccess, usuarioToEdit }: Props) =
                apellido: formData.apellido,
                username: formData.username,
                tipo_usuario: formData.tipo_usuario,
-               rol: formData.rol,
+               role_id: formData.role_id,
             };
 
             // Solo incluir password si se cambió
@@ -161,13 +185,26 @@ export const AddUsuario = ({ open, onClose, onSuccess, usuarioToEdit }: Props) =
             }
 
             console.log('📤 Actualizando usuario:', updateData);
-            const response = await updateUsuario(usuarioToEdit.id, updateData);
-            console.log('✅ Usuario actualizado exitosamente:', response);
+            await updateUsuario(usuarioToEdit.id, updateData);
+
+            // Asignar rol si cambió
+            if (formData.role_id && formData.role_id !== usuarioToEdit.roles?.[0]?.id) {
+               console.log('📤 Asignando nuevo rol al usuario');
+               await asignarRolUsuario(usuarioToEdit.id, formData.role_id);
+            }
+
+            console.log('✅ Usuario actualizado exitosamente');
          } else {
             // Modo crear
             console.log('📤 Creando nuevo usuario:', formData);
             const response = await createUsuario(formData);
             console.log('✅ Usuario creado exitosamente:', response);
+
+            // Asignar rol al usuario recién creado
+            if (formData.role_id && response?.id) {
+               console.log('📤 Asignando rol al nuevo usuario');
+               await asignarRolUsuario(response.id, formData.role_id);
+            }
          }
 
          // Reset form
@@ -177,8 +214,9 @@ export const AddUsuario = ({ open, onClose, onSuccess, usuarioToEdit }: Props) =
             username: '',
             password: '',
             tipo_usuario: 'operativo',
-            rol: 'vendedor_mayorista',
+            role_id: undefined,
          });
+         setSelectedRol(null);
          setConfirmPassword('');
 
          onSuccess?.();
@@ -221,16 +259,18 @@ export const AddUsuario = ({ open, onClose, onSuccess, usuarioToEdit }: Props) =
             username: '',
             password: '',
             tipo_usuario: 'operativo',
-            rol: 'vendedor_mayorista',
+            role_id: undefined,
          });
+         setSelectedRol(null);
          setConfirmPassword('');
          setApiError('');
          onClose();
       }
    };
 
-   // Obtener roles disponibles según el tipo de usuario seleccionado
-   const rolesDisponibles = getRolesByTipoUsuario(formData.tipo_usuario);
+   // Filtrar roles según el tipo de usuario seleccionado
+   const rolesDelTipo = rolesDisponibles.filter(r => r.tipo_usuario === formData.tipo_usuario);
+   const rolSeleccionado = rolesDisponibles.find(r => r.id === formData.role_id);
 
    return (
       <Modal
@@ -361,36 +401,42 @@ export const AddUsuario = ({ open, onClose, onSuccess, usuarioToEdit }: Props) =
                   <Text size="$sm" weight="medium">
                      Rol *
                   </Text>
-                  <Dropdown>
-                     <Dropdown.Button 
-                        flat 
-                        color="success" 
-                        css={{ width: '100%', justifyContent: 'space-between' }}
-                        disabled={loading}
-                     >
-                        {ROLES_CONFIG[formData.rol].label}
-                     </Dropdown.Button>
-                     <Dropdown.Menu
-                        aria-label="Seleccionar rol"
-                        selectionMode="single"
-                        selectedKeys={[formData.rol]}
-                        onSelectionChange={(keys) => {
-                           const selected = Array.from(keys)[0] as Rol;
-                           handleInputChange('rol', selected);
-                        }}
-                     >
-                        {rolesDisponibles.map((rol) => (
-                           <Dropdown.Item key={rol}>
-                              <Flex direction="column">
-                                 <Text weight="bold">{ROLES_CONFIG[rol].label}</Text>
-                                 <Text size="$xs" color="$accents7">
-                                    {ROLES_CONFIG[rol].descripcion} - {ROLES_CONFIG[rol].acceso}
-                                 </Text>
-                              </Flex>
-                           </Dropdown.Item>
-                        ))}
-                     </Dropdown.Menu>
-                  </Dropdown>
+                  {rolesDelTipo.length > 0 ? (
+                     <Dropdown>
+                        <Dropdown.Button 
+                           flat 
+                           color="success" 
+                           css={{ width: '100%', justifyContent: 'space-between' }}
+                           disabled={loading}
+                        >
+                           {rolSeleccionado?.descripcion || 'Seleccionar rol'}
+                        </Dropdown.Button>
+                        <Dropdown.Menu
+                           aria-label="Seleccionar rol"
+                           selectionMode="single"
+                           selectedKeys={formData.role_id ? [`${formData.role_id}`] : []}
+                           onSelectionChange={(keys) => {
+                              const selected = Array.from(keys)[0] as string;
+                              handleRolChange(parseInt(selected));
+                           }}
+                        >
+                           {rolesDelTipo.map((rol) => (
+                              <Dropdown.Item key={rol.id} value={rol.id}>
+                                 <Flex direction="column">
+                                    <Text weight="bold">{rol.nombre}</Text>
+                                    <Text size="$xs" color="$accents7">
+                                       {rol.descripcion}
+                                    </Text>
+                                 </Flex>
+                              </Dropdown.Item>
+                           ))}
+                        </Dropdown.Menu>
+                     </Dropdown>
+                  ) : (
+                     <Text color="warning" size="$sm">
+                        ⚠️ No hay roles disponibles para este tipo de usuario
+                     </Text>
+                  )}
                </Flex>
 
                {/* Mostrar error si existe */}
