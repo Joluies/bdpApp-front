@@ -114,7 +114,8 @@ export interface RespuestaClientesAPI {
 // Enum para tipos de cliente
 export enum TipoCliente {
    MAYORISTA = 'mayorista',
-   MINORISTA = 'minorista'
+   MINORISTA = 'minorista',
+   INDEPENDIENTE = 'independiente'
 }
 
 // Interface para estadísticas

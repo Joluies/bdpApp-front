@@ -23,7 +23,7 @@ import { EyeIcon } from '../icons/table/eye-icon';
 
 interface Props {
    apiConnected?: boolean | null;
-   tipoCliente?: 'Mayorista' | 'Minorista' | 'Independiente';
+   tipoCliente?: TipoCliente | string;
 }
 
 export const ClientesTable = ({ apiConnected, tipoCliente }: Props) => {
