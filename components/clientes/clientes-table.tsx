@@ -209,7 +209,7 @@ export const ClientesTable = ({ apiConnected }: Props) => {
          case 'codigoCliente':
             return (
                <Text css={{ fontSize: '$sm', fontWeight: '$semibold' }}>
-                  {cliente.codigoCliente}
+                  {cliente.idCliente}
                </Text>
             );
 

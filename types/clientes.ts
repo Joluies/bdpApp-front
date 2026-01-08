@@ -64,6 +64,7 @@ export interface TelefonoAPI {
 // Interface principal para un cliente de la API
 export interface ClienteAPIReal {
    idCliente: number;
+   codigoCliente: string;
    nombre: string;
    apellidos: string;
    tipoCliente: "Minorista" | "Mayorista";

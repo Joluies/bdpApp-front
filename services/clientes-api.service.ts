@@ -24,6 +24,7 @@ export interface TelefonoEnvio {
 // Interfaces para la respuesta real de la API con paginación
 export interface ClienteAPIReal {
    idCliente: number;
+   codigoCliente: string;
    nombre: string;
    apellidos: string;
    tipoCliente: "Minorista" | "Mayorista";
