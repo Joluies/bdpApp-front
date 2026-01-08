@@ -62,10 +62,23 @@ export const login = async (credentials: LoginDto): Promise<LoginResponse> => {
 
     clearTimeout(timeoutId);
 
-    const data: LoginResponse = await response.json();
+    // Intentar parsear la respuesta como JSON
+    let data: LoginResponse;
+    try {
+      data = await response.json();
+    } catch (parseError) {
+      // Si no es JSON válido, crear respuesta de error
+      console.error('❌ [login] Respuesta no es JSON válida:', parseError);
+      throw new Error('El servidor respondió con un formato inválido. Verifica la conexión del servidor.');
+    }
 
     if (!response.ok) {
-      throw new Error(data.error || `Error HTTP: ${response.status}`);
+      const errorMsg = data.error || data.message || `Error HTTP: ${response.status}`;
+      throw new Error(errorMsg);
+    }
+
+    if (!data.success) {
+      throw new Error(data.error || 'La autenticación falló');
     }
 
     if (currentConfig.LOG_REQUESTS) {
@@ -75,9 +88,16 @@ export const login = async (credentials: LoginDto): Promise<LoginResponse> => {
     return data;
   } catch (error: any) {
     console.error('❌ [login] Error en login:', error);
+    
+    // Manejar errores específicos
     if (error.name === 'AbortError') {
-      throw new Error('La solicitud ha excedido el tiempo de espera');
+      throw new Error('La solicitud ha excedido el tiempo de espera. Intenta de nuevo.');
     }
+    
+    if (error.message.includes('Failed to fetch') || error.message.includes('NetworkError')) {
+      throw new Error('No se puede conectar al servidor. Verifica la URL de la API y que el servidor esté en línea.');
+    }
+
     throw error;
   }
 };

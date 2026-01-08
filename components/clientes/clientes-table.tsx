@@ -12,6 +12,7 @@ import {
    Card,
    Loading,
    Modal,
+   Radio,
 } from '@nextui-org/react';
 import { Flex } from '../styles/flex';
 import { Cliente, TipoCliente, ClienteMayorista, ClienteMinorista } from '../../types/clientes';
@@ -21,11 +22,10 @@ import { DeleteIcon } from '../icons/table/delete-icon';
 import { EyeIcon } from '../icons/table/eye-icon';
 
 interface Props {
-   tipoCliente: TipoCliente;
    apiConnected?: boolean | null;
 }
 
-export const ClientesTable = ({ tipoCliente, apiConnected }: Props) => {
+export const ClientesTable = ({ apiConnected }: Props) => {
    const [clientes, setClientes] = useState<ClienteAPIReal[]>([]);
    const [loading, setLoading] = useState(true);
    const [error, setError] = useState<string>('');
@@ -47,18 +47,21 @@ export const ClientesTable = ({ tipoCliente, apiConnected }: Props) => {
          setLoading(true);
          setError('');
          
-         console.log('🔄 Iniciando carga de clientes tipo:', tipoCliente);
+         console.log('🔄 Iniciando carga de todos los clientes');
          
          try {
-            const tipoParam = tipoCliente === TipoCliente.MAYORISTA ? 'Mayorista' : 'Minorista';
-            console.log(`📍 Llamando obtenerClientesPorTipo con tipo: ${tipoParam}`);
+            // Cargar Mayoristas
+            const clientesMayoristas = await clientesApiService.obtenerClientesPorTipo('Mayorista');
+            // Cargar Minoristas
+            const clientesMinoristas = await clientesApiService.obtenerClientesPorTipo('Minorista');
             
-            const clientesData = await clientesApiService.obtenerClientesPorTipo(tipoParam);
+            // Combinar ambas listas
+            const todosLosClientes = [...clientesMayoristas, ...clientesMinoristas];
             
-            console.log('✅ Clientes cargados:', clientesData);
-            console.log('📊 Total de clientes:', clientesData.length);
+            console.log('✅ Clientes cargados:', todosLosClientes);
+            console.log('📊 Total de clientes:', todosLosClientes.length);
             
-            setClientes(clientesData);
+            setClientes(todosLosClientes);
          } catch (error: any) {
             console.error('❌ Error al cargar clientes:', error);
             console.error('❌ Error message:', error.message);
@@ -71,7 +74,7 @@ export const ClientesTable = ({ tipoCliente, apiConnected }: Props) => {
       };
 
       cargarClientes();
-   }, [tipoCliente, apiConnected]);
+   }, [apiConnected]);
 
    // Función para recargar datos
    const recargarDatos = async () => {
@@ -80,11 +83,11 @@ export const ClientesTable = ({ tipoCliente, apiConnected }: Props) => {
          setError('');
          
          try {
-            const clientesData = await clientesApiService.obtenerClientesPorTipo(
-               tipoCliente === TipoCliente.MAYORISTA ? 'Mayorista' : 'Minorista'
-            );
-            setClientes(clientesData);
-            setCurrentPage(1); // Resetear a la primera página
+            const clientesMayoristas = await clientesApiService.obtenerClientesPorTipo('Mayorista');
+            const clientesMinoristas = await clientesApiService.obtenerClientesPorTipo('Minorista');
+            const todosLosClientes = [...clientesMayoristas, ...clientesMinoristas];
+            setClientes(todosLosClientes);
+            setCurrentPage(1);
          } catch (error: any) {
             console.error('Error al recargar clientes:', error);
             setError(error.message || 'Error al recargar los clientes');
@@ -151,12 +154,16 @@ export const ClientesTable = ({ tipoCliente, apiConnected }: Props) => {
          formData.append('apellidos', editandoCliente.apellidos || '');
          formData.append('direccion', editandoCliente.direccion || '');
          
-         // Agregar campos específicos por tipo
-         if (editandoCliente.tipoCliente === 'Mayorista') {
-            formData.append('ruc', editandoCliente.ruc || '');
-            formData.append('razonSocial', editandoCliente.razonSocial || '');
-         } else {
-            formData.append('dni', editandoCliente.dni || '');
+         // Agregar DNI y RUC siempre - el vendedor puede cambiar el tipo de cliente
+         // El controlador maneja correctamente ambos campos
+         if (editandoCliente.dni) {
+            formData.append('dni', editandoCliente.dni);
+         }
+         if (editandoCliente.ruc) {
+            formData.append('ruc', editandoCliente.ruc);
+         }
+         if (editandoCliente.razonSocial || editandoCliente.razon_social) {
+            formData.append('razonSocial', editandoCliente.razonSocial || editandoCliente.razon_social || '');
          }
          
          // Agregar teléfonos si existen
@@ -199,35 +206,45 @@ export const ClientesTable = ({ tipoCliente, apiConnected }: Props) => {
 
    const renderCell = (cliente: ClienteAPIReal, columnKey: React.Key) => {
       switch (columnKey) {
-         case 'identificacion':
+         case 'codigoCliente':
             return (
                <Text css={{ fontSize: '$sm', fontWeight: '$semibold' }}>
-                  {cliente.tipoCliente === 'Mayorista' 
-                     ? cliente.ruc
-                     : cliente.dni
-                  }
+                  {cliente.codigoCliente}
                </Text>
             );
 
-         case 'nombre':
+         case 'dni':
             return (
-               <Flex direction="column">
-                  <Text css={{ fontSize: '$sm', fontWeight: '$semibold', color: '#034F32' }}>
-                     {cliente.tipoCliente === 'Mayorista' 
-                        ? (cliente.razonSocial || cliente.razon_social)
-                        : `${cliente.nombre} ${cliente.apellidos}`
-                     }
-                  </Text>
-                  <Text css={{ fontSize: '$xs', color: '$accents7' }}>
-                     {cliente.tipoCliente === 'Mayorista' ? 'Empresa' : 'Persona Natural'}
-                  </Text>
-               </Flex>
+               <Text css={{ fontSize: '$sm' }}>
+                  {cliente.dni || '-'}
+               </Text>
+            );
+
+         case 'nombreApellido':
+            return (
+               <Text css={{ fontSize: '$sm', fontWeight: '$semibold', color: '#034F32' }}>
+                  {`${cliente.nombre || ''} ${cliente.apellidos || ''}`.trim() || '-'}
+               </Text>
+            );
+
+         case 'ruc':
+            return (
+               <Text css={{ fontSize: '$sm' }}>
+                  {cliente.ruc || '-'}
+               </Text>
+            );
+
+         case 'razonSocial':
+            return (
+               <Text css={{ fontSize: '$sm' }}>
+                  {cliente.razonSocial || cliente.razon_social || '-'}
+               </Text>
             );
 
          case 'direccion':
             return (
-               <Text css={{ fontSize: '$sm', maxWidth: '300px' }}>
-                  {cliente.direccion}
+               <Text css={{ fontSize: '$sm', maxWidth: '250px' }}>
+                  {cliente.direccion || '-'}
                </Text>
             );
 
@@ -241,22 +258,15 @@ export const ClientesTable = ({ tipoCliente, apiConnected }: Props) => {
                </Text>
             );
 
-         case 'estado':
+         case 'tipoCliente':
             return (
                <Badge 
-                  color="success"
+                  color={cliente.tipoCliente === 'Mayorista' ? 'primary' : 'success'}
                   variant="flat"
                   size="sm"
                >
-                  Activo
+                  {cliente.tipoCliente}
                </Badge>
-            );
-
-         case 'fechaCreacion':
-            return (
-               <Text css={{ fontSize: '$sm' }}>
-                  {new Date(cliente.created_at).toLocaleDateString('es-PE')}
-               </Text>
             );
 
          case 'acciones':
@@ -305,27 +315,17 @@ export const ClientesTable = ({ tipoCliente, apiConnected }: Props) => {
       }
    };
 
-   const columnasMayorista = [
-      { name: 'RUC', uid: 'identificacion' },
-      { name: 'Razón Social', uid: 'nombre' },
+   const columnas = [
+      { name: 'Cód. Cliente', uid: 'codigoCliente' },
+      { name: 'DNI', uid: 'dni' },
+      { name: 'Nombre y Apellido', uid: 'nombreApellido' },
+      { name: 'RUC', uid: 'ruc' },
+      { name: 'Razón Social', uid: 'razonSocial' },
       { name: 'Dirección', uid: 'direccion' },
       { name: 'Teléfonos', uid: 'telefonos' },
-      { name: 'Estado', uid: 'estado' },
-      { name: 'Fecha Registro', uid: 'fechaCreacion' },
+      { name: 'Tipo Cliente', uid: 'tipoCliente' },
       { name: 'Acciones', uid: 'acciones' },
    ];
-
-   const columnasMinorista = [
-      { name: 'DNI', uid: 'identificacion' },
-      { name: 'Nombres y Apellidos', uid: 'nombre' },
-      { name: 'Dirección', uid: 'direccion' },
-      { name: 'Teléfonos', uid: 'telefonos' },
-      { name: 'Estado', uid: 'estado' },
-      { name: 'Fecha Registro', uid: 'fechaCreacion' },
-      { name: 'Acciones', uid: 'acciones' },
-   ];
-
-   const columnas = tipoCliente === TipoCliente.MAYORISTA ? columnasMayorista : columnasMinorista;
 
    return (
       <Card css={{ p: '$6' }}>
@@ -352,10 +352,7 @@ export const ClientesTable = ({ tipoCliente, apiConnected }: Props) => {
          {!loading && (
             <Flex justify="between" align="center" css={{ mb: '$4' }}>
                <Text h4 css={{ color: '#034F32' }}>
-                  {tipoCliente === TipoCliente.MAYORISTA 
-                     ? 'Clientes Mayoristas' 
-                     : 'Clientes Minoristas'}
-                  {` (${clientes.length})`}
+                  Clientes {` (${clientes.length})`}
                </Text>
                <Flex css={{ gap: '$2' }}>
                   <Text css={{ fontSize: '$sm', color: '$accents7' }}>
@@ -371,7 +368,7 @@ export const ClientesTable = ({ tipoCliente, apiConnected }: Props) => {
          {/* Tabla */}
          {!loading && !error && (
             <Table
-               aria-label={`Tabla de ${tipoCliente}`}
+               aria-label="Tabla de Clientes"
                css={{
                   height: 'auto',
                   minWidth: '100%',
@@ -479,7 +476,7 @@ export const ClientesTable = ({ tipoCliente, apiConnected }: Props) => {
          {!loading && !error && clientes.length === 0 && apiConnected !== false && (
             <Flex justify="center" align="center" css={{ py: '$10' }}>
                <Text css={{ color: '$accents7', textAlign: 'center' }}>
-                  No hay clientes {tipoCliente} registrados aún.
+                  No hay clientes registrados aún.
                   <br />
                   ¡Agrega el primero usando el botón de arriba!
                </Text>
@@ -584,60 +581,92 @@ export const ClientesTable = ({ tipoCliente, apiConnected }: Props) => {
             <Modal.Body css={{ py: '$10' }}>
                {editandoCliente && (
                   <Flex direction="column" css={{ gap: '$4' }}>
-                     {editandoCliente.tipoCliente === 'Mayorista' ? (
-                        <>
-                           <Flex direction="column" css={{ gap: '$1' }}>
-                              <Text size={14} weight="bold">RUC</Text>
-                              <Input
-                                 fullWidth
-                                 bordered
-                                 value={editandoCliente.ruc || ''}
-                                 onChange={(e) => actualizarCampoEdicion('ruc', e.target.value)}
-                                 disabled
-                              />
-                           </Flex>
-                           <Flex direction="column" css={{ gap: '$1' }}>
-                              <Text size={14} weight="bold">Razón Social</Text>
-                              <Input
-                                 fullWidth
-                                 bordered
-                                 value={editandoCliente.razonSocial || ''}
-                                 onChange={(e) => actualizarCampoEdicion('razonSocial', e.target.value)}
-                              />
-                           </Flex>
-                        </>
-                     ) : (
-                        <>
-                           <Flex direction="column" css={{ gap: '$1' }}>
-                              <Text size={14} weight="bold">DNI</Text>
-                              <Input
-                                 fullWidth
-                                 bordered
-                                 value={editandoCliente.dni || ''}
-                                 onChange={(e) => actualizarCampoEdicion('dni', e.target.value)}
-                                 disabled
-                              />
-                           </Flex>
-                           <Flex direction="column" css={{ gap: '$1' }}>
-                              <Text size={14} weight="bold">Nombres</Text>
-                              <Input
-                                 fullWidth
-                                 bordered
-                                 value={editandoCliente.nombre || ''}
-                                 onChange={(e) => actualizarCampoEdicion('nombre', e.target.value)}
-                              />
-                           </Flex>
-                           <Flex direction="column" css={{ gap: '$1' }}>
-                              <Text size={14} weight="bold">Apellidos</Text>
-                              <Input
-                                 fullWidth
-                                 bordered
-                                 value={editandoCliente.apellidos || ''}
-                                 onChange={(e) => actualizarCampoEdicion('apellidos', e.target.value)}
-                              />
-                           </Flex>
-                        </>
-                     )}
+                     {/* SELECTOR DE TIPO DE CLIENTE */}
+                     <Flex direction="column" css={{ gap: '$2' }}>
+                        <Text size={14} weight="bold">Tipo de Cliente</Text>
+                        <Text size={12} css={{ color: '$accents7' }}>
+                           El vendedor determina el tipo de cliente. Puedes asignar DNI o RUC a cualquier tipo.
+                        </Text>
+                        <Flex css={{ gap: '$4' }}>
+                           <Radio
+                              label="Mayorista"
+                              value="Mayorista"
+                              checked={editandoCliente.tipoCliente === 'Mayorista'}
+                              onChange={(e) => actualizarCampoEdicion('tipoCliente', e.target.value)}
+                              color="success"
+                           />
+                           <Radio
+                              label="Minorista"
+                              value="Minorista"
+                              checked={editandoCliente.tipoCliente === 'Minorista'}
+                              onChange={(e) => actualizarCampoEdicion('tipoCliente', e.target.value)}
+                              color="success"
+                           />
+                           <Radio
+                              label="Independiente"
+                              value="Independiente"
+                              checked={editandoCliente.tipoCliente === 'Independiente'}
+                              onChange={(e) => actualizarCampoEdicion('tipoCliente', e.target.value)}
+                              color="success"
+                           />
+                        </Flex>
+                     </Flex>
+
+                     {/* TODOS LOS CAMPOS - Flexibles según lo que ingrese el vendedor */}
+                     <Flex direction="column" css={{ gap: '$1' }}>
+                        <Text size={14} weight="bold">DNI (Opcional)</Text>
+                        <Input
+                           fullWidth
+                           bordered
+                           value={editandoCliente.dni || ''}
+                           onChange={(e) => actualizarCampoEdicion('dni', e.target.value)}
+                           placeholder="12345678"
+                        />
+                     </Flex>
+
+                     <Flex direction="column" css={{ gap: '$1' }}>
+                        <Text size={14} weight="bold">RUC (Opcional)</Text>
+                        <Input
+                           fullWidth
+                           bordered
+                           value={editandoCliente.ruc || ''}
+                           onChange={(e) => actualizarCampoEdicion('ruc', e.target.value)}
+                           placeholder="11123456789"
+                        />
+                     </Flex>
+
+                     <Flex direction="column" css={{ gap: '$1' }}>
+                        <Text size={14} weight="bold">Nombres (Opcional)</Text>
+                        <Input
+                           fullWidth
+                           bordered
+                           value={editandoCliente.nombre || ''}
+                           onChange={(e) => actualizarCampoEdicion('nombre', e.target.value)}
+                           placeholder="Juan"
+                        />
+                     </Flex>
+
+                     <Flex direction="column" css={{ gap: '$1' }}>
+                        <Text size={14} weight="bold">Apellidos (Opcional)</Text>
+                        <Input
+                           fullWidth
+                           bordered
+                           value={editandoCliente.apellidos || ''}
+                           onChange={(e) => actualizarCampoEdicion('apellidos', e.target.value)}
+                           placeholder="Pérez García"
+                        />
+                     </Flex>
+
+                     <Flex direction="column" css={{ gap: '$1' }}>
+                        <Text size={14} weight="bold">Razón Social (Opcional)</Text>
+                        <Input
+                           fullWidth
+                           bordered
+                           value={editandoCliente.razonSocial || editandoCliente.razon_social || ''}
+                           onChange={(e) => actualizarCampoEdicion('razonSocial', e.target.value)}
+                           placeholder="Nombre de la empresa"
+                        />
+                     </Flex>
 
                      {/* Añadir Foto de Fachada */}
                      <Flex direction="column" css={{ gap: '$1' }}>
@@ -662,6 +691,7 @@ export const ClientesTable = ({ tipoCliente, apiConnected }: Props) => {
                            bordered
                            value={editandoCliente.direccion || ''}
                            onChange={(e) => actualizarCampoEdicion('direccion', e.target.value)}
+                           placeholder="Calle principal 123"
                         />
                      </Flex>
 
