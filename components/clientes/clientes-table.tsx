@@ -592,21 +592,21 @@ export const ClientesTable = ({ apiConnected }: Props) => {
                               label="Mayorista"
                               value="Mayorista"
                               checked={editandoCliente.tipoCliente === 'Mayorista'}
-                              onChange={(e) => actualizarCampoEdicion('tipoCliente', e.target.value)}
+                              onChange={(e) => actualizarCampoEdicion('tipoCliente', (e.target as HTMLInputElement).value)}
                               color="success"
                            />
                            <Radio
                               label="Minorista"
                               value="Minorista"
                               checked={editandoCliente.tipoCliente === 'Minorista'}
-                              onChange={(e) => actualizarCampoEdicion('tipoCliente', e.target.value)}
+                              onChange={(e) => actualizarCampoEdicion('tipoCliente', (e.target as HTMLInputElement).value)}
                               color="success"
                            />
                            <Radio
                               label="Independiente"
                               value="Independiente"
                               checked={editandoCliente.tipoCliente === 'Independiente'}
-                              onChange={(e) => actualizarCampoEdicion('tipoCliente', e.target.value)}
+                              onChange={(e) => actualizarCampoEdicion('tipoCliente', (e.target as HTMLInputElement).value)}
                               color="success"
                            />
                         </Flex>
