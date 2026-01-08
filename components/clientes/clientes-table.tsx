@@ -23,9 +23,10 @@ import { EyeIcon } from '../icons/table/eye-icon';
 
 interface Props {
    apiConnected?: boolean | null;
+   tipoCliente?: 'Mayorista' | 'Minorista' | 'Independiente';
 }
 
-export const ClientesTable = ({ apiConnected }: Props) => {
+export const ClientesTable = ({ apiConnected, tipoCliente }: Props) => {
    const [clientes, setClientes] = useState<ClienteAPIReal[]>([]);
    const [loading, setLoading] = useState(true);
    const [error, setError] = useState<string>('');
