@@ -27,7 +27,7 @@ export interface ClienteAPIReal {
    codigoCliente: string;
    nombre: string;
    apellidos: string;
-   tipoCliente: "Minorista" | "Mayorista";
+   tipoCliente: "Minorista" | "Mayorista" | "Independiente";
    dni: string;
    ruc: string | null;
    razon_social?: string | null;  // Mantener para compatibilidad
