@@ -33,6 +33,8 @@ export interface ClienteAPIReal {
    razon_social?: string | null;  // Mantener para compatibilidad
    razonSocial: string | null;    // Nuevo campo de la API
    direccion: string;
+   distrito?: string;              // Nuevo campo para el distrito
+   distritio?: string;             // Alternativamente por typo en base de datos
    telefonos: TelefonoAPI[];      // Array de teléfonos
    created_at: string;
    updated_at: string;
@@ -597,17 +599,44 @@ class ClientesApiService {
       porcentajeMinoristas: number;
    }> {
       try {
-         const mayoristas = await this.obtenerClientesPorTipo('Mayorista');
-         const minoristas = await this.obtenerClientesPorTipo('Minorista');
+         // Obtener solo la primera página para sacar el meta con el total
+         const respuesta = await this.obtenerClientesConPaginacion(1);
          
-         const total = mayoristas.length + minoristas.length;
-         const porcentajeMayoristas = total > 0 ? (mayoristas.length / total) * 100 : 0;
-         const porcentajeMinoristas = total > 0 ? (minoristas.length / total) * 100 : 0;
+         const total = respuesta.meta.total;
+         
+         // Si el total es mayor a 10, necesitamos obtener todas las páginas para contar por tipo
+         let mayoristas = 0;
+         let minoristas = 0;
+         
+         if (total > 10) {
+            // Para un total grande, hacer una estimación basada en la primera página
+            // o hacer multiples llamadas para obtener todos los datos
+            for (let page = 1; page <= respuesta.meta.last_page; page++) {
+               const pageData = await this.obtenerClientesConPaginacion(page);
+               mayoristas += pageData.data.filter(c => c.tipoCliente === 'Mayorista').length;
+               minoristas += pageData.data.filter(c => c.tipoCliente === 'Minorista').length;
+            }
+         } else {
+            // Si hay menos de 10, contar desde la primera página
+            mayoristas = respuesta.data.filter(c => c.tipoCliente === 'Mayorista').length;
+            minoristas = respuesta.data.filter(c => c.tipoCliente === 'Minorista').length;
+         }
+         
+         const porcentajeMayoristas = total > 0 ? (mayoristas / total) * 100 : 0;
+         const porcentajeMinoristas = total > 0 ? (minoristas / total) * 100 : 0;
+         
+         console.log('📊 Estadísticas calculadas:', {
+            total,
+            mayoristas,
+            minoristas,
+            porcentajeMayoristas,
+            porcentajeMinoristas
+         });
          
          return {
             total,
-            mayoristas: mayoristas.length,
-            minoristas: minoristas.length,
+            mayoristas,
+            minoristas,
             porcentajeMayoristas,
             porcentajeMinoristas
          };
@@ -816,6 +845,84 @@ class ClientesApiService {
          };
       } catch (error) {
          console.error('❌ Error al actualizar cliente con fotos:', error);
+         throw error;
+      }
+   }
+
+   /**
+    * Obtener todos los clientes sin filtrar por tipo
+    */
+   async obtenerTodosLosClientes(): Promise<ClienteAPIReal[]> {
+      try {
+         const url = `${API_CONFIG.ENDPOINTS.CUSTOMERS.LIST}`;
+         
+         console.log('🔍 Obteniendo todos los clientes');
+         console.log(`📍 URL: ${buildApiUrl(url)}`);
+         
+         const result = await this.makeRequest(url, 'GET');
+         
+         console.log('📦 Respuesta completa:', result);
+         
+         // La respuesta viene como: { success: true, data: { data: [...], links, meta } }
+         // Extraer correctamente los datos
+         let clientes: ClienteAPIReal[] = [];
+         
+         if (result?.data?.data && Array.isArray(result.data.data)) {
+            clientes = result.data.data;
+            console.log(`✅ Clientes extraídos de result.data.data: ${clientes.length}`);
+         } else if (result?.data && Array.isArray(result.data)) {
+            clientes = result.data;
+            console.log(`✅ Clientes extraídos de result.data: ${clientes.length}`);
+         } else {
+            console.warn('⚠️ Estructura de respuesta inesperada:', result);
+         }
+         
+         console.log(`✅ Total de clientes: ${clientes.length}`);
+         console.log('📋 Clientes obtenidos:', clientes);
+         
+         return clientes;
+      } catch (error) {
+         console.error('❌ Error al obtener todos los clientes:', error);
+         console.error('❌ Error message:', error instanceof Error ? error.message : error);
+         throw error; // Lanzar el error en lugar de retornar array vacío
+      }
+   }
+
+   /**
+    * Obtener clientes con paginación desde la API
+    * @param page - Número de página (comienza en 1)
+    */
+   async obtenerClientesConPaginacion(page: number = 1): Promise<RespuestaClientesAPI> {
+      try {
+         const url = `${API_CONFIG.ENDPOINTS.CUSTOMERS.LIST}?page=${page}`;
+         
+         console.log(`🔍 Obteniendo clientes de página: ${page}`);
+         console.log(`📍 URL: ${buildApiUrl(url)}`);
+         
+         const result = await this.makeRequest(url, 'GET');
+         
+         console.log('📦 Respuesta paginada:', result);
+         
+         // La respuesta viene como: { success: true, data: { data: [...], links, meta } }
+         if (result?.data) {
+            const respuesta: RespuestaClientesAPI = {
+               data: result.data.data || [],
+               links: result.data.links || {},
+               meta: result.data.meta || {},
+               success: result.success || false
+            };
+            
+            console.log(`✅ Página ${page}: ${respuesta.data.length} clientes`);
+            console.log(`📊 Total de páginas: ${respuesta.meta.last_page}`);
+            console.log(`📈 Total de clientes: ${respuesta.meta.total}`);
+            
+            return respuesta;
+         } else {
+            throw new Error('Estructura de respuesta inesperada');
+         }
+      } catch (error) {
+         console.error('❌ Error al obtener clientes con paginación:', error);
+         console.error('❌ Error message:', error instanceof Error ? error.message : error);
          throw error;
       }
    }

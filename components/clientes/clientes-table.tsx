@@ -16,7 +16,7 @@ import {
 } from '@nextui-org/react';
 import { Flex } from '../styles/flex';
 import { Cliente, TipoCliente, ClienteMayorista, ClienteMinorista } from '../../types/clientes';
-import { ClienteAPIReal, TelefonoAPI, clientesApiService } from '../../services/clientes-api.service';
+import { ClienteAPIReal, TelefonoAPI, clientesApiService, RespuestaClientesAPI } from '../../services/clientes-api.service';
 import { EditIcon } from '../icons/table/edit-icon';
 import { DeleteIcon } from '../icons/table/delete-icon';
 import { EyeIcon } from '../icons/table/eye-icon';
@@ -30,10 +30,13 @@ export const ClientesTable = ({ apiConnected, tipoCliente }: Props) => {
    const [clientes, setClientes] = useState<ClienteAPIReal[]>([]);
    const [loading, setLoading] = useState(true);
    const [error, setError] = useState<string>('');
+   const [searchTerm, setSearchTerm] = useState('');
    
-   // Estados para paginación
+   // Estados para paginación de API
    const [currentPage, setCurrentPage] = useState(1);
-   const itemsPerPage = 6;
+   const [totalPages, setTotalPages] = useState(1);
+   const [totalClientes, setTotalClientes] = useState(0);
+   const [perPage, setPerPage] = useState(10);
 
    // Estados para modales
    const [visibleModalDetalles, setVisibleModalDetalles] = useState(false);
@@ -48,21 +51,21 @@ export const ClientesTable = ({ apiConnected, tipoCliente }: Props) => {
          setLoading(true);
          setError('');
          
-         console.log('🔄 Iniciando carga de todos los clientes');
+         console.log('🔄 Iniciando carga de clientes de página', currentPage);
          
          try {
-            // Cargar Mayoristas
-            const clientesMayoristas = await clientesApiService.obtenerClientesPorTipo('Mayorista');
-            // Cargar Minoristas
-            const clientesMinoristas = await clientesApiService.obtenerClientesPorTipo('Minorista');
+            // Cargar clientes con paginación de API
+            const respuesta: RespuestaClientesAPI = await clientesApiService.obtenerClientesConPaginacion(currentPage);
             
-            // Combinar ambas listas
-            const todosLosClientes = [...clientesMayoristas, ...clientesMinoristas];
+            console.log('✅ Clientes cargados:', respuesta.data);
+            console.log('📊 Página actual:', respuesta.meta.current_page);
+            console.log('📈 Total de páginas:', respuesta.meta.last_page);
+            console.log('📊 Total de clientes:', respuesta.meta.total);
             
-            console.log('✅ Clientes cargados:', todosLosClientes);
-            console.log('📊 Total de clientes:', todosLosClientes.length);
-            
-            setClientes(todosLosClientes);
+            setClientes(respuesta.data);
+            setTotalPages(respuesta.meta.last_page);
+            setTotalClientes(respuesta.meta.total);
+            setPerPage(respuesta.meta.per_page);
          } catch (error: any) {
             console.error('❌ Error al cargar clientes:', error);
             console.error('❌ Error message:', error.message);
@@ -74,42 +77,24 @@ export const ClientesTable = ({ apiConnected, tipoCliente }: Props) => {
          }
       };
 
-      cargarClientes();
-   }, [apiConnected]);
+      if (apiConnected !== false) {
+         cargarClientes();
+      } else {
+         setLoading(false);
+      }
+   }, [apiConnected, currentPage]);
 
    // Función para recargar datos
    const recargarDatos = async () => {
-      const cargarClientes = async () => {
-         setLoading(true);
-         setError('');
-         
-         try {
-            const clientesMayoristas = await clientesApiService.obtenerClientesPorTipo('Mayorista');
-            const clientesMinoristas = await clientesApiService.obtenerClientesPorTipo('Minorista');
-            const todosLosClientes = [...clientesMayoristas, ...clientesMinoristas];
-            setClientes(todosLosClientes);
-            setCurrentPage(1);
-         } catch (error: any) {
-            console.error('Error al recargar clientes:', error);
-            setError(error.message || 'Error al recargar los clientes');
-         } finally {
-            setLoading(false);
-         }
-      };
-
-      await cargarClientes();
+      setCurrentPage(1); // Volver a la primera página
    };
-
-   // Cálculos de paginación
-   const totalPages = Math.ceil(clientes.length / itemsPerPage);
-   const startIndex = (currentPage - 1) * itemsPerPage;
-   const endIndex = startIndex + itemsPerPage;
-   const clientesPaginados = clientes.slice(startIndex, endIndex);
 
    // Función para cambiar página
    const cambiarPagina = (page: number) => {
       if (page >= 1 && page <= totalPages) {
          setCurrentPage(page);
+         // Scroll al inicio de la tabla
+         window.scrollTo({ top: 0, behavior: 'smooth' });
       }
    };
 
@@ -210,7 +195,7 @@ export const ClientesTable = ({ apiConnected, tipoCliente }: Props) => {
          case 'codigoCliente':
             return (
                <Text css={{ fontSize: '$sm', fontWeight: '$semibold' }}>
-                  {cliente.idCliente}
+                  {cliente.codigoCliente || cliente.idCliente}
                </Text>
             );
 
@@ -256,6 +241,13 @@ export const ClientesTable = ({ apiConnected, tipoCliente }: Props) => {
                      ? cliente.telefonos.map(tel => tel.numero || tel.number || 'N/A').join(', ')
                      : 'Sin datos'
                   }
+               </Text>
+            );
+
+         case 'distrito':
+            return (
+               <Text css={{ fontSize: '$sm' }}>
+                  {cliente.distrito || cliente.distritio || '-'}
                </Text>
             );
 
@@ -323,6 +315,7 @@ export const ClientesTable = ({ apiConnected, tipoCliente }: Props) => {
       { name: 'RUC', uid: 'ruc' },
       { name: 'Razón Social', uid: 'razonSocial' },
       { name: 'Dirección', uid: 'direccion' },
+      { name: 'Distrito', uid: 'distrito' },
       { name: 'Teléfonos', uid: 'telefonos' },
       { name: 'Tipo Cliente', uid: 'tipoCliente' },
       { name: 'Acciones', uid: 'acciones' },
@@ -351,17 +344,43 @@ export const ClientesTable = ({ apiConnected, tipoCliente }: Props) => {
 
          {/* Header con filtros */}
          {!loading && (
-            <Flex justify="between" align="center" css={{ mb: '$4' }}>
-               <Text h4 css={{ color: '#034F32' }}>
-                  Clientes {` (${clientes.length})`}
-               </Text>
-               <Flex css={{ gap: '$2' }}>
-                  <Text css={{ fontSize: '$sm', color: '$accents7' }}>
-                     Página {currentPage} de {totalPages}
+            <Flex direction="column" css={{ gap: '$3', mb: '$4' }}>
+               <Flex justify="between" align="center">
+                  <Text h4 css={{ color: '#034F32' }}>
+                     Clientes {` (${totalClientes})`}
                   </Text>
-                  <Button auto flat color="success" size="sm" onPress={recargarDatos}>
-                     🔄 Actualizar
-                  </Button>
+                  <Flex css={{ gap: '$2' }}>
+                     <Text css={{ fontSize: '$sm', color: '$accents7' }}>
+                        Página {currentPage} de {totalPages}
+                     </Text>
+                     <Button auto flat color="success" size="sm" onPress={() => setCurrentPage(1)}>
+                        🔄 Actualizar
+                     </Button>
+                  </Flex>
+               </Flex>
+               
+               {/* Buscador local (nota: esto es búsqueda en los 10 items de la página actual) */}
+               <Input
+                  fullWidth
+                  clearable
+                  bordered
+                  placeholder="🔍 Buscar en esta página por nombre, DNI, RUC, código, dirección o distrito..."
+                  value={searchTerm}
+                  onChange={(e) => {
+                     setSearchTerm(e.target.value);
+                  }}
+                  css={{ width: '100%' }}
+                  size="lg"
+               />
+               
+               {/* Información de resultados */}
+               <Flex justify="between" align="center">
+                  <Text css={{ fontSize: '$sm', color: '$accents7' }}>
+                     Mostrando clientes {(currentPage - 1) * perPage + 1} al {Math.min(currentPage * perPage, totalClientes)} de {totalClientes} clientes
+                  </Text>
+                  <Text css={{ fontSize: '$xs', color: '$accents7' }}>
+                     {perPage} clientes por página
+                  </Text>
                </Flex>
             </Flex>
          )}
@@ -395,7 +414,7 @@ export const ClientesTable = ({ apiConnected, tipoCliente }: Props) => {
             </Table.Header>
             
             <Table.Body>
-               {clientesPaginados.map((item) => (
+               {clientes.map((item) => (
                   <Table.Row key={item.idCliente}>
                      {(columnKey) => (
                         <Table.Cell>
@@ -422,23 +441,57 @@ export const ClientesTable = ({ apiConnected, tipoCliente }: Props) => {
                   ‹
                </Button>
                
-               {Array.from({ length: totalPages }, (_, index) => index + 1).map((page) => (
-                  <Button
-                     key={page}
-                     auto
-                     flat={page !== currentPage}
-                     color={page === currentPage ? "success" : "default"}
-                     size="sm"
-                     onPress={() => cambiarPagina(page)}
-                     css={{ 
-                        minWidth: '40px',
-                        backgroundColor: page === currentPage ? '#034F32' : 'transparent',
-                        color: page === currentPage ? 'white' : '#034F32'
-                     }}
-                  >
-                     {page}
-                  </Button>
-               ))}
+               {/* Mostrar números de página inteligentemente */}
+               {Array.from({ length: Math.min(totalPages, 10) }, (_, index) => {
+                  let page;
+                  if (totalPages <= 10) {
+                     // Si hay 10 o menos páginas, mostrar todas
+                     page = index + 1;
+                  } else if (currentPage <= 5) {
+                     // Si estamos en las primeras 5 páginas, mostrar 1-10
+                     page = index + 1;
+                  } else if (currentPage > totalPages - 5) {
+                     // Si estamos en las últimas 5 páginas, mostrar últimas 10
+                     page = totalPages - 9 + index;
+                  } else {
+                     // Si estamos en el medio, mostrar 5 antes y 5 después
+                     page = currentPage - 5 + index;
+                  }
+                  
+                  return (
+                     <Button
+                        key={page}
+                        auto
+                        flat={page !== currentPage}
+                        color={page === currentPage ? "success" : "default"}
+                        size="sm"
+                        onPress={() => cambiarPagina(page)}
+                        css={{ 
+                           minWidth: '40px',
+                           backgroundColor: page === currentPage ? '#034F32' : 'transparent',
+                           color: page === currentPage ? 'white' : '#034F32'
+                        }}
+                     >
+                        {page}
+                     </Button>
+                  );
+               })}
+               
+               {totalPages > 10 && currentPage < totalPages - 4 && (
+                  <>
+                     <Text>...</Text>
+                     <Button
+                        auto
+                        flat
+                        color="default"
+                        size="sm"
+                        onPress={() => cambiarPagina(totalPages)}
+                        css={{ minWidth: '40px' }}
+                     >
+                        {totalPages}
+                     </Button>
+                  </>
+               )}
                
                <Button 
                   auto 
@@ -457,7 +510,7 @@ export const ClientesTable = ({ apiConnected, tipoCliente }: Props) => {
          {!loading && !error && clientes.length > 0 && (
             <Flex justify="center" css={{ mt: '$2' }}>
                <Text css={{ fontSize: '$xs', color: '$accents7' }}>
-                  Mostrando {startIndex + 1}-{Math.min(endIndex, clientes.length)} de {clientes.length} clientes
+                  Página {currentPage} de {totalPages} | Total: {totalClientes} clientes
                </Text>
             </Flex>
          )}
@@ -477,9 +530,9 @@ export const ClientesTable = ({ apiConnected, tipoCliente }: Props) => {
          {!loading && !error && clientes.length === 0 && apiConnected !== false && (
             <Flex justify="center" align="center" css={{ py: '$10' }}>
                <Text css={{ color: '$accents7', textAlign: 'center' }}>
-                  No hay clientes registrados aún.
+                  No hay clientes registrados en esta página.
                   <br />
-                  ¡Agrega el primero usando el botón de arriba!
+                  Intenta navegar a otra página.
                </Text>
             </Flex>
          )}

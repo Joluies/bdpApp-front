@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Card, Button, Spacer, Text, Grid, Loading } from '@nextui-org/react';
+import { Card, Button, Spacer, Text, Grid, Loading, Modal } from '@nextui-org/react';
 import { Flex } from '../styles/flex';
 import { TipoCliente } from '../../types/clientes';
 import { AddClienteMayorista } from './add-cliente-mayorista';
@@ -12,6 +12,7 @@ import { clientesApiService } from '../../services/clientes-api.service';
 export const ClientesContent = () => {
    const [activeTab, setActiveTab] = useState<TipoCliente>(TipoCliente.MAYORISTA);
    const [showAddModal, setShowAddModal] = useState(false);
+   const [showTypeSelectionModal, setShowTypeSelectionModal] = useState(false);
    const [showDiagnosticModal, setShowDiagnosticModal] = useState(false);
    const [apiConnected, setApiConnected] = useState<boolean | null>(null);
    
@@ -53,6 +54,12 @@ export const ClientesContent = () => {
    };
 
    const handleAddCliente = () => {
+      setShowTypeSelectionModal(true);
+   };
+
+   const handleSelectType = (tipo: TipoCliente) => {
+      setActiveTab(tipo);
+      setShowTypeSelectionModal(false);
       setShowAddModal(true);
    };
 
@@ -188,41 +195,8 @@ export const ClientesContent = () => {
 
          <Spacer y={2} />
 
-         {/* Selector de tipo y botón de agregar */}
-         <Flex justify="between" align="center" css={{ flexWrap: 'wrap', gap: '$4' }}>
-            <Flex css={{ gap: '$2' }}>
-               <Button 
-                  auto 
-                  flat={activeTab !== TipoCliente.MAYORISTA}
-                  css={{
-                     backgroundColor: activeTab === TipoCliente.MAYORISTA ? '#5CAC4C' : 'transparent',
-                     color: activeTab === TipoCliente.MAYORISTA ? 'white' : '#034F32',
-                     border: '2px solid #5CAC4C',
-                     '&:hover': {
-                        backgroundColor: activeTab === TipoCliente.MAYORISTA ? '#4A9C3C' : '#F1F1E9'
-                     }
-                  }}
-                  onPress={() => handleTabChange(TipoCliente.MAYORISTA)}
-               >
-                  Clientes Mayoristas ({stats.clientesMayoristas})
-               </Button>
-               <Button 
-                  auto 
-                  flat={activeTab !== TipoCliente.MINORISTA}
-                  css={{
-                     backgroundColor: activeTab === TipoCliente.MINORISTA ? '#5CAC4C' : 'transparent',
-                     color: activeTab === TipoCliente.MINORISTA ? 'white' : '#034F32',
-                     border: '2px solid #5CAC4C',
-                     '&:hover': {
-                        backgroundColor: activeTab === TipoCliente.MINORISTA ? '#4A9C3C' : '#F1F1E9'
-                     }
-                  }}
-                  onPress={() => handleTabChange(TipoCliente.MINORISTA)}
-               >
-                  Clientes Minoristas ({stats.clientesMinoristas})
-               </Button>
-            </Flex>
-            
+         {/* Botón de agregar cliente */}
+         <Flex justify="flex-end" css={{ mb: '$4' }}>
             <Button
                auto
                disabled={apiConnected === false}
@@ -235,16 +209,62 @@ export const ClientesContent = () => {
                }}
                onPress={handleAddCliente}
             >
-               Agregar Cliente {activeTab === TipoCliente.MAYORISTA ? 'Mayorista' : 'Minorista'}
+               ➕ Agregar Cliente
             </Button>
          </Flex>
 
-         <Spacer y={1.5} />
+         <Spacer y={1} />
 
          {/* Tabla de clientes */}
-         <ClientesTable tipoCliente={activeTab} apiConnected={apiConnected} />
+         <ClientesTable apiConnected={apiConnected} />
 
          {/* Modales de agregar clientes */}
+         {/* Modal de selección de tipo */}
+         <Modal
+            closeButton
+            aria-labelledby="modal-tipo"
+            open={showTypeSelectionModal}
+            onClose={() => setShowTypeSelectionModal(false)}
+            width="400px"
+         >
+            <Modal.Header css={{ fontSize: '18px', fontWeight: '$bold' }}>
+               Seleccionar Tipo de Cliente
+            </Modal.Header>
+            <Modal.Body css={{ py: '$6', gap: '$4' }}>
+               <Text>¿Qué tipo de cliente deseas agregar?</Text>
+               <Flex direction="column" css={{ gap: '$3' }}>
+                  <Button
+                     flat
+                     color="success"
+                     onPress={() => handleSelectType(TipoCliente.MAYORISTA)}
+                     css={{
+                        backgroundColor: '#C8ECC9',
+                        color: '#034F32',
+                        fontSize: '1rem',
+                        fontWeight: 'bold',
+                        height: '50px'
+                     }}
+                  >
+                     🏢 Cliente Mayorista
+                  </Button>
+                  <Button
+                     flat
+                     color="success"
+                     onPress={() => handleSelectType(TipoCliente.MINORISTA)}
+                     css={{
+                        backgroundColor: '#F8D7DA',
+                        color: '#034F32',
+                        fontSize: '1rem',
+                        fontWeight: 'bold',
+                        height: '50px'
+                     }}
+                  >
+                     👤 Cliente Minorista
+                  </Button>
+               </Flex>
+            </Modal.Body>
+         </Modal>
+
          {showAddModal && activeTab === TipoCliente.MAYORISTA && (
             <AddClienteMayorista 
                open={showAddModal} 
