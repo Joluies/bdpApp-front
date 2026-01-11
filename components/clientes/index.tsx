@@ -196,7 +196,7 @@ export const ClientesContent = () => {
          <Spacer y={2} />
 
          {/* Botón de agregar cliente */}
-         <Flex justify="flex-end" css={{ mb: '$4' }}>
+         <Flex justify="end" css={{ mb: '$4' }}>
             <Button
                auto
                disabled={apiConnected === false}
