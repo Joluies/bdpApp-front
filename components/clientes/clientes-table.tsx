@@ -443,7 +443,7 @@ export const ClientesTable = ({ apiConnected, tipoCliente }: Props) => {
                
                {/* Mostrar números de página inteligentemente */}
                {Array.from({ length: Math.min(totalPages, 10) }, (_, index) => {
-                  let page;
+                  let page: number = 0;
                   if (totalPages <= 10) {
                      // Si hay 10 o menos páginas, mostrar todas
                      page = index + 1;
