@@ -390,7 +390,7 @@ export const AddPedidoModal: React.FC<AddPedidoModalProps> = ({
                     <option value={0}>Seleccionar...</option>
                     {productos.map((prod) => (
                       <option key={prod.id} value={prod.id}>
-                        {prod.nombre} - S/. {prod.precio.toFixed(2)}
+                        {prod.nombre} - S/. {parseFloat(String(prod.precio || '0')).toFixed(2)}
                       </option>
                     ))}
                   </select>
@@ -422,7 +422,7 @@ export const AddPedidoModal: React.FC<AddPedidoModalProps> = ({
 
               {productoSeleccionado && (
                 <Text size="$xs" color="$gray600">
-                  Precio unitario: S/. {newItem.precio_unitario?.toFixed(2)} | Subtotal: S/. {((newItem.cantidad || 1) * (newItem.precio_unitario || 0)).toFixed(2)}
+                  Precio unitario: S/. {parseFloat(String(newItem.precio_unitario || '0')).toFixed(2)} | Subtotal: S/. {(parseFloat(String(newItem.cantidad || 1)) * parseFloat(String(newItem.precio_unitario || 0))).toFixed(2)}
                 </Text>
               )}
             </Box>
@@ -454,7 +454,7 @@ export const AddPedidoModal: React.FC<AddPedidoModalProps> = ({
                           {prod?.nombre}
                         </Text>
                         <Text size="$xs" color="$gray600">
-                          {detalle.cantidad} x S/. {detalle.precio_unitario?.toFixed(2)} = S/. {detalle.subtotal?.toFixed(2)}
+                          {detalle.cantidad} x S/. {parseFloat(String(detalle.precio_unitario || '0')).toFixed(2)} = S/. {parseFloat(String(detalle.subtotal || '0')).toFixed(2)}
                         </Text>
                       </Flex>
 
@@ -479,7 +479,7 @@ export const AddPedidoModal: React.FC<AddPedidoModalProps> = ({
                 <Flex justify="between" align="center">
                   <Text weight="bold">Total:</Text>
                   <Text weight="bold" size="$lg" color="$success">
-                    S/. {total.toFixed(2)}
+                    S/. {parseFloat(String(total || '0')).toFixed(2)}
                   </Text>
                 </Flex>
               </Box>

@@ -1,7 +1,8 @@
 // Servicio para la API real de productos de Bebidas del Perú
-import { API_CONFIG } from '../config/api.config';
-
-const API_BASE_URL = API_CONFIG.BASE_URL;
+// Usar la URL base disponible desde variables de entorno o fallback
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL 
+  ? `${process.env.NEXT_PUBLIC_API_URL}/api`
+  : 'https://api.bebidasdelperuapp.com/api';
 
 export interface ApiProduct {
   idProducto: number;
@@ -391,6 +392,18 @@ class ProductsApiService {
 
   // Función para convertir ApiProduct a formato local compatible
   mapToLocal(apiProduct: ApiProduct) {
+    // Construir URL completa de la imagen
+    let imageUrl = apiProduct.urlImage || '/images/products/default.jpg';
+    
+    // Si la URL no es absoluta (no empieza con http/https), agregar la base URL del servidor
+    if (imageUrl && !imageUrl.startsWith('http') && imageUrl !== '/storage/img/products/default.jpg') {
+      const baseUrl = process.env.NEXT_PUBLIC_API_URL || 'https://api.bebidasdelperuapp.com';
+      // Insertar "productos/" en la ruta: storage/img/1767160816_6954bbf068153.jpg 
+      // → storage/img/productos/1767160816_6954bbf068153.jpg
+      const imagePath = imageUrl.replace('storage/img/', 'storage/img/productos/');
+      imageUrl = `${baseUrl}/${imagePath}`;
+    }
+    
     return {
       id: apiProduct.idProducto,
       name: apiProduct.nombre,
@@ -399,7 +412,7 @@ class ProductsApiService {
       precio_unitario: apiProduct.precioUnitario,
       precio_mayorista: apiProduct.precioMayorista,
       stock: apiProduct.stock,
-      image: apiProduct.urlImage || '/images/products/default.jpg',
+      image: imageUrl,
       category: 'Gaseosas', // Valor por defecto, se puede determinar desde el nombre
       status: apiProduct.stock > 0 ? 'Disponible' as const : 'Agotado' as const,
       created_at: apiProduct.created_at,

@@ -1,6 +1,7 @@
-import { API_CONFIG } from '@/config/api.config';
-
-const apiUrl = API_CONFIG.BASE_URL || 'https://api.bebidasdelperuapp.com/api';
+// Usar la URL base disponible desde variables de entorno o fallback
+const apiUrl = process.env.NEXT_PUBLIC_API_URL 
+  ? `${process.env.NEXT_PUBLIC_API_URL}/api`
+  : 'https://api.bebidasdelperuapp.com/api';
 
 export interface DetallePedido {
   id?: number;
@@ -37,16 +38,48 @@ class PedidoService {
     per_page?: number;
     page?: number;
   }) {
-    const queryString = new URLSearchParams(
-      Object.entries(params || {}).reduce((acc: any, [key, value]) => {
-        if (value !== undefined) acc[key] = String(value);
-        return acc;
-      }, {})
-    ).toString();
+    try {
+      const queryString = new URLSearchParams(
+        Object.entries(params || {}).reduce((acc: any, [key, value]) => {
+          if (value !== undefined) acc[key] = String(value);
+          return acc;
+        }, {})
+      ).toString();
 
-    const response = await fetch(`${apiUrl}/pedidos${queryString ? '?' + queryString : ''}`);
-    if (!response.ok) throw new Error('Error al obtener pedidos');
-    return response.json();
+      const url = `${apiUrl}/pedidos${queryString ? '?' + queryString : ''}`;
+      console.log('Fetching pedidos from:', url);
+      
+      const response = await fetch(url);
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.message || `Error ${response.status}: ${response.statusText}`);
+      }
+      
+      const data = await response.json();
+      console.log('Respuesta del API:', data);
+      
+      // Manejar la estructura de respuesta con success/message/data/meta
+      if (data.success !== undefined && data.data !== undefined) {
+        // Nueva estructura: { success, message, data, meta }
+        const responseStructured = {
+          data: Array.isArray(data.data) ? data.data : [],
+          meta: data.meta || { current_page: 1, last_page: 1, total: 0, per_page: 10 }
+        };
+        console.log('Pedidos procesados correctamente:', responseStructured);
+        return responseStructured;
+      }
+      
+      // Estructura alternativa: { data, meta } sin success
+      if (Array.isArray(data.data) && data.meta) {
+        console.log('Pedidos loaded successfully:', data);
+        return data;
+      }
+      
+      throw new Error('Estructura de respuesta inválida: esperado { data, meta } o { success, data, meta }');
+    } catch (error: any) {
+      console.error('Error en obtenerPedidos:', error);
+      throw error;
+    }
   }
 
   /**

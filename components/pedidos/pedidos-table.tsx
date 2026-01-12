@@ -99,7 +99,7 @@ export const PedidosTable = () => {
                   {new Date(pedidoSeleccionado.fecha_pedido || '').toLocaleDateString('es-PE')}
                 </Text>
                 <Text size="$sm" color="$gray700">
-                  <strong>Monto Total:</strong> S/. {pedidoSeleccionado.monto_total?.toFixed(2)}
+                  <strong>Monto Total:</strong> S/. {parseFloat(String(pedidoSeleccionado.monto_total || '0')).toFixed(2)}
                 </Text>
                 <Text size="$sm" color="$gray700">
                   <strong>Estado:</strong> {pedidoSeleccionado.estado}
@@ -118,7 +118,7 @@ export const PedidosTable = () => {
                   </Text>
                   {pedidoSeleccionado.detalles.map((detalle, index) => (
                     <Text key={index} size="$xs" color="$gray700">
-                      • {detalle.cantidad}x Producto {detalle.idProducto} - S/. {detalle.precio_unitario?.toFixed(2)}
+                      • {detalle.cantidad}x Producto {detalle.idProducto} - S/. {parseFloat(String(detalle.precio_unitario || '0')).toFixed(2)}
                     </Text>
                   ))}
                 </Box>

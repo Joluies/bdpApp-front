@@ -1,6 +1,7 @@
-import { API_CONFIG } from '@/config/api.config';
-
-const apiUrl = API_CONFIG.BASE_URL || 'https://api.bebidasdelperuapp.com/api';
+// Usar la URL base disponible desde variables de entorno o fallback
+const apiUrl = process.env.NEXT_PUBLIC_API_URL 
+  ? `${process.env.NEXT_PUBLIC_API_URL}/api`
+  : 'https://api.bebidasdelperuapp.com/api';
 
 export interface ClienteRuta {
   idCliente: number;

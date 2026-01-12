@@ -1,11 +1,17 @@
 // Configuración de la API para diferentes entornos
 const isDevelopment = process.env.NODE_ENV === 'development';
 
+// Obtener URL desde variables de entorno o usar fallback
+const getBaseUrl = (): string => {
+  if (typeof window !== 'undefined' && process.env.NEXT_PUBLIC_API_URL) {
+    return `${process.env.NEXT_PUBLIC_API_URL}/api`;
+  }
+  return 'https://api.bebidasdelperuapp.com/api';
+};
+
 export const API_CONFIG = {
   // URL base de la API - dinámica según el entorno
-  BASE_URL: isDevelopment 
-    ? 'https://api.bebidasdelperuapp.com/api'
-    : 'https://api.bebidasdelperuapp.com/api',
+  BASE_URL: getBaseUrl(),
   
   // Configuración por entorno
   DEVELOPMENT: {

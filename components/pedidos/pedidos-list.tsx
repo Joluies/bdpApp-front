@@ -42,14 +42,20 @@ export const PedidosList = ({ onEdit, onView, onRefresh }: Props) => {
         search: searchTerm || undefined,
       });
 
+      // Validar que la respuesta tenga la estructura esperada
+      if (!response || !response.data) {
+        throw new Error('Respuesta inválida del servidor');
+      }
+
       setPedidos(response.data);
-      setCurrentPage(response.meta.current_page);
-      setTotalPages(response.meta.last_page);
-      setTotalPedidos(response.meta.total);
-      setPerPage(response.meta.per_page);
+      setCurrentPage(response.meta?.current_page || page);
+      setTotalPages(response.meta?.last_page || 1);
+      setTotalPedidos(response.meta?.total || 0);
+      setPerPage(response.meta?.per_page || 10);
     } catch (error: any) {
-      console.error('Error:', error);
-      setError(error.message || 'Error al cargar los pedidos');
+      console.error('Error al cargar pedidos:', error);
+      const errorMessage = error?.message || 'Error al cargar los pedidos';
+      setError(errorMessage);
       setPedidos([]);
     } finally {
       setLoading(false);
@@ -122,7 +128,7 @@ export const PedidosList = ({ onEdit, onView, onRefresh }: Props) => {
       case 'monto_total':
         return (
           <Text css={{ fontSize: '$sm', fontWeight: '$semibold' }}>
-            S/. {pedido.monto_total?.toFixed(2) || '0.00'}
+            S/. {parseFloat(String(pedido.monto_total || '0')).toFixed(2)}
           </Text>
         );
 
@@ -214,7 +220,7 @@ export const PedidosList = ({ onEdit, onView, onRefresh }: Props) => {
             clearable
             placeholder="Buscar por número de pedido..."
             value={searchTerm}
-            onChange={(e) => {
+            onChange={(e: any) => {
               setSearchTerm(e.target.value);
               setCurrentPage(1);
             }}
@@ -223,7 +229,7 @@ export const PedidosList = ({ onEdit, onView, onRefresh }: Props) => {
 
           <select
             value={filtroEstado}
-            onChange={(e) => {
+            onChange={(e: any) => {
               setFiltroEstado(e.target.value);
               setCurrentPage(1);
             }}

@@ -36,6 +36,29 @@ export interface ProductLocal {
 
 // Función para convertir datos de la API al formato local
 export const mapApiProductToLocal = (apiProduct: ApiProduct): ProductLocal => {
+  let imageUrl = apiProduct.urlImage || '/images/products/default.jpg';
+  
+  // Caso 1: URL relativa sin dominio (ej: storage/img/1767160816_6954bbf068153.jpg)
+  if (imageUrl && !imageUrl.startsWith('http') && imageUrl !== '/images/products/default.jpg') {
+    const baseUrl = process.env.NEXT_PUBLIC_API_URL || 'https://api.bebidasdelperuapp.com';
+    // Insertar "productos/" en la ruta: storage/img/... → storage/img/productos/...
+    const imagePath = imageUrl.replace('storage/img/', 'storage/img/productos/');
+    imageUrl = `${baseUrl}/${imagePath}`;
+    console.log('🖼️ URL relativa transformada:', {
+      original: apiProduct.urlImage,
+      transformed: imageUrl
+    });
+  }
+  // Caso 2: URL absoluta SIN productos/ (ej: https://api.bebidasdelperuapp.com/storage/img/...)
+  else if (imageUrl && imageUrl.startsWith('http') && imageUrl.includes('storage/img/') && !imageUrl.includes('storage/img/productos/')) {
+    // Reemplazar storage/img/ por storage/img/productos/
+    imageUrl = imageUrl.replace('storage/img/', 'storage/img/productos/');
+    console.log('🖼️ URL absoluta transformada:', {
+      original: apiProduct.urlImage,
+      transformed: imageUrl
+    });
+  }
+  
   return {
     id: apiProduct.idProducto,
     name: apiProduct.nombre,
@@ -44,7 +67,7 @@ export const mapApiProductToLocal = (apiProduct: ApiProduct): ProductLocal => {
     precio_unitario: apiProduct.precioUnitario,
     precio_mayorista: apiProduct.precioMayorista,
     stock: apiProduct.stock,
-    image: apiProduct.urlImage || '/images/products/default.jpg',
+    image: imageUrl,
     category: 'Gaseosas', // Valor por defecto
     status: apiProduct.stock > 0 ? 'Disponible' : 'Agotado'
   };
