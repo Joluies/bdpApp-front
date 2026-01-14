@@ -103,67 +103,12 @@ export const AddProductModal: React.FC<AddProductModalProps> = ({
 
    const createProductInAPI = async (productData: any, imageFile: File | null) => {
       try {
-         console.log('📤 Enviando producto a la API:', productData);
+         console.log('📤 Enviando producto a la API:', { productData, hasImage: !!imageFile });
          
-         // Crear FormData para enviar el archivo correctamente
-         const formData = new FormData();
-         formData.append('nombre', productData.nombre);
-         formData.append('descripcion', productData.descripcion);
-         formData.append('presentacion', productData.presentacion);
-         formData.append('precioUnitario', productData.precioUnitario.toString());
-         formData.append('precioMayorista', productData.precioMayorista.toString());
-         formData.append('stock', productData.stock.toString());
+         // Usar el método del servicio que maneja FormData
+         const result = await productsApiService.createProductWithImage(productData, imageFile);
          
-         // Agregar archivo si existe
-         if (imageFile) {
-            console.log('📸 Archivo de imagen agregado:', imageFile.name);
-            formData.append('urlImage', imageFile);
-         }
-
-         // Hacer la petición directamente sin usar el servicio (para enviar FormData)
-         const apiUrl = process.env.NEXT_PUBLIC_API_URL + '/api/products';
-         console.log('🔗 URL completa de la petición:', apiUrl);
-         
-         const response = await fetch(apiUrl, {
-            method: 'POST',
-            mode: 'cors',
-            body: formData,
-            headers: {
-               'Accept': 'application/json',
-            }
-         });
-
-         console.log('📊 Status de respuesta:', response.status);
-         console.log('📊 Content-Type:', response.headers.get('content-type'));
-         
-         // Obtener el texto de respuesta primero
-         const responseText = await response.text();
-         console.log('📝 Respuesta del servidor (raw):', responseText);
-
-         // Verificar si es JSON válido
-         let result;
-         try {
-            result = JSON.parse(responseText);
-         } catch (e) {
-            console.error('❌ La respuesta no es JSON válido:', responseText.substring(0, 200));
-            throw new Error(`Error del servidor (${response.status}): La respuesta no es JSON válido. Verifica los logs del backend.`);
-         }
-
-         console.log('🔍 Resultado de createProduct:', result);
-
-         // Verificar si la respuesta indica error
-         if (!response.ok) {
-            console.error('❌ Error en la respuesta:', result);
-            throw new Error(result?.message || `Error del servidor (${response.status})`);
-         }
-
-         // Aceptar cualquier resultado que no sea null/undefined
-         if (result === null || result === undefined) {
-            console.error('❌ API retornó null/undefined');
-            throw new Error('La API no retornó datos válidos');
-         }
-
-         console.log('✅ Producto creado exitosamente:', result);
+         console.log('✅ Resultado de createProductWithImage:', result);
          return result;
       } catch (error) {
          console.error('❌ Error al crear producto:', error);

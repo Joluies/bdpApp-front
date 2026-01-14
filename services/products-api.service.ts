@@ -166,10 +166,10 @@ class ProductsApiService {
     }
   }
 
-  // Crear un nuevo producto
+  // Crear un nuevo producto (JSON)
   async createProduct(productData: CreateProductData): Promise<ApiProduct | null> {
     try {
-      console.log('📝 Datos a enviar para crear producto:', productData);
+      console.log('📝 Datos a enviar para crear producto (JSON):', productData);
       
       const response = await this.request<any>('/products', {
         method: 'POST',
@@ -220,6 +220,97 @@ class ProductsApiService {
       return response as any;
     } catch (error) {
       console.error('❌ Error creando producto:', error);
+      throw error;
+    }
+  }
+
+  // Crear un nuevo producto con imagen (FormData)
+  async createProductWithImage(productData: any, imageFile?: File | null): Promise<ApiProduct | null> {
+    try {
+      console.log('📝 Datos a enviar para crear producto con imagen:', { productData, hasImage: !!imageFile });
+      
+      // Crear FormData
+      const formData = new FormData();
+      formData.append('nombre', productData.nombre || productData.name);
+      formData.append('descripcion', productData.descripcion || productData.description);
+      formData.append('presentacion', productData.presentacion || productData.presentation);
+      formData.append('precioUnitario', String(productData.precioUnitario || productData.precio_unitario || '0'));
+      formData.append('precioMayorista', String(productData.precioMayorista || productData.precio_mayorista || '0'));
+      formData.append('stock', String(productData.stock || '0'));
+      
+      // Agregar archivo si existe
+      if (imageFile) {
+        console.log('📸 Archivo de imagen agregado:', imageFile.name);
+        console.log('  - Tipo MIME:', imageFile.type);
+        console.log('  - Tamaño:', (imageFile.size / 1024).toFixed(2), 'KB');
+        formData.append('urlImage', imageFile);
+      }
+
+      // Hacer la petición
+      const apiUrl = `${API_BASE_URL}/products`;
+      console.log('🔗 URL completa de creación:', apiUrl);
+      console.log('🔗 Método HTTP: POST (FormData)');
+      
+      const response = await fetch(apiUrl, {
+        method: 'POST',
+        mode: 'cors',
+        body: formData,
+        headers: {
+          'Accept': 'application/json',
+          // NO incluir Content-Type - FormData lo maneja automáticamente
+        }
+      });
+
+      console.log('📊 Status de respuesta:', response.status);
+      console.log('📊 Headers de respuesta:', {
+        'content-type': response.headers.get('content-type'),
+        'content-length': response.headers.get('content-length')
+      });
+      
+      // Obtener el texto de respuesta
+      const responseText = await response.text();
+      console.log('📝 Respuesta del servidor (raw):', responseText);
+
+      // Verificar si es JSON válido
+      let result;
+      try {
+        result = JSON.parse(responseText);
+      } catch (e) {
+        console.error('❌ La respuesta no es JSON válido:', responseText.substring(0, 200));
+        throw new Error(`Error del servidor (${response.status}): La respuesta no es JSON válido.`);
+      }
+
+      console.log('🔍 Resultado de createProductWithImage:', result);
+
+      // Verificar si la respuesta indica error
+      if (!response.ok) {
+        console.error('❌ Error en la respuesta:', result);
+        throw new Error(result?.message || `Error del servidor (${response.status})`);
+      }
+
+      // Manejar diferentes formatos de respuesta
+      if (typeof result === 'object') {
+        // Formato: { product: {...} }
+        if ('product' in result && result.product) {
+          console.log('✅ Producto creado (formato product):', result.product);
+          return result.product as ApiProduct;
+        }
+        // Formato directo: { idProducto, nombre, ... }
+        else if ('idProducto' in result) {
+          console.log('✅ Producto creado (formato directo):', result);
+          return result as ApiProduct;
+        }
+        // Formato: { data: {...} }
+        else if ('data' in result && result.data) {
+          console.log('✅ Producto creado (formato data):', result.data);
+          return result.data as ApiProduct;
+        }
+      }
+
+      console.warn('⚠️ Formato de respuesta no reconocido pero creación exitosa:', result);
+      return result as any;
+    } catch (error) {
+      console.error('❌ Error creando producto con imagen:', error);
       throw error;
     }
   }
