@@ -215,6 +215,8 @@ export const ProductsContent = () => {
           descripcion: updatedData?.description ?? "",
           presentacion: updatedData?.presentation ?? "",
           precioUnitario: updatedData?.precio_unitario ?? 0,
+          precioMayorista: updatedData?.precio_mayorista ?? 0,
+          stock: updatedData?.stock ?? 0
         };
         console.log("📊 Datos a enviar al API:", apiUpdateData);
         console.log("🔄 Enviando actualización con imagen a la API...");

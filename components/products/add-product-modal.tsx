@@ -121,7 +121,7 @@ export const AddProductModal: React.FC<AddProductModalProps> = ({
          }
 
          // Hacer la petición directamente sin usar el servicio (para enviar FormData)
-         const apiUrl = process.env.NEXT_PUBLIC_API_BASE_URL + '/products';
+         const apiUrl = process.env.NEXT_PUBLIC_API_URL + '/api/products';
          console.log('🔗 URL completa de la petición:', apiUrl);
          
          const response = await fetch(apiUrl, {

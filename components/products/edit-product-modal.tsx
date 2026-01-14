@@ -113,7 +113,7 @@ export const EditProductModal: React.FC<EditProductModalProps> = ({
          precio_unitario: parseFloat(formData.precio_unitario),
          precio_mayorista: parseFloat(formData.precio_mayorista),
          stock: parseInt(formData.stock),
-         image: formData.image || '/images/products/default.jpg',
+         image: formData.image || '/img/productos/default.jpg',
          category: Array.from(selectedCategory)[0] as string,
          status: Array.from(selectedStatus)[0] as 'Disponible' | 'Agotado' | 'Descontinuado',
          imageFile: imageFile // Pasar el archivo de imagen
