@@ -1,8 +1,8 @@
 // Servicio para la API real de productos de Bebidas del Perú
 // Usar la URL base disponible desde variables de entorno o fallback
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL 
-  ? `${process.env.NEXT_PUBLIC_API_URL}/api`
-  : 'https://api.bebidasdelperuapp.com/api';
+  ? process.env.NEXT_PUBLIC_API_URL
+  : 'https://api.bebidasdelperuapp.com';
 
 export interface ApiProduct {
   idProducto: number;
@@ -11,7 +11,11 @@ export interface ApiProduct {
   presentacion: string;
   precioUnitario: number;
   precioMayorista: number;
-  stock: number;
+  codProduct?: string;
+  stockPaquete?: number;
+  stockUnid?: number;
+  stockTotal?: number;
+  stock?: number;
   created_at: string;
   updated_at: string;
   urlImage: string | null;
@@ -29,11 +33,15 @@ export interface CreateProductData {
   presentacion: string;
   precioUnitario: number;
   precioMayorista: number;
-  stock: number;
+  stockPaquete?: number;
+  stockUnid?: number;
   urlImage?: string;
 }
 
-export interface UpdateProductData extends Partial<CreateProductData> {}
+export interface UpdateProductData extends Partial<CreateProductData> {
+  stockPaquete?: number;
+  stockUnid?: number;
+}
 
 class ProductsApiService {
   private async request<T>(
@@ -108,11 +116,14 @@ class ProductsApiService {
   // Obtener todos los productos
   async getProducts(): Promise<ApiProduct[]> {
     try {
-      console.log('🔍 Intentando conectar a la API:', `${API_BASE_URL}/products`);
+      console.log('🔍 Intentando conectar a la API:', `${API_BASE_URL}/api/products`);
       
-      const response = await this.request<any>('/products');
+      const response = await this.request<any>('/api/products');
       
       console.log('📦 Respuesta de la API recibida:', response);
+      console.log('📦 Tipo de respuesta:', typeof response);
+      console.log('📦 Es array?', Array.isArray(response));
+      console.log('📦 Tiene propiedad products?', 'products' in (response || {}));
       
       // Manejar diferentes formatos de respuesta
       if (Array.isArray(response)) {
@@ -123,6 +134,7 @@ class ProductsApiService {
         if ('products' in response) {
           if (Array.isArray(response.products)) {
             console.log('✅ Datos recibidos en formato {products: [...]}:', response.products.length, 'productos');
+            console.log('✅ Primer producto:', response.products[0]);
             return response.products as ApiProduct[];
           } else if (response.products === null || response.products === undefined) {
             console.log('✅ API respondió con products null/undefined - array vacío');
@@ -141,11 +153,15 @@ class ProductsApiService {
         }
       }
       
-      console.log('⚠️ Formato de respuesta no reconocido, pero conexión exitosa:', typeof response, response);
-      console.log('🔄 Retornando array vacío para mantener conexión API activa');
+      console.log('⚠️ Formato de respuesta no reconocido:', response);
+      console.log('🔄 Retornando array vacío');
       return [];
     } catch (error) {
       console.error('❌ Error conectando a la API:', error);
+      console.error('❌ Detalles del error:', {
+        message: (error as Error).message,
+        stack: (error as Error).stack
+      });
       throw error;
     }
   }
@@ -153,7 +169,7 @@ class ProductsApiService {
   // Obtener un producto por ID
   async getProduct(id: number): Promise<ApiProduct | null> {
     try {
-      const response = await this.request<ApiProduct | ApiResponse<ApiProduct>>(`/products/${id}`);
+      const response = await this.request<ApiProduct | ApiResponse<ApiProduct>>(`/api/products/${id}`);
       
       if ('data' in response) {
         return response.data as ApiProduct;
@@ -171,7 +187,7 @@ class ProductsApiService {
     try {
       console.log('📝 Datos a enviar para crear producto (JSON):', productData);
       
-      const response = await this.request<any>('/products', {
+      const response = await this.request<any>('/api/products', {
         method: 'POST',
         body: JSON.stringify(productData),
       });
@@ -236,7 +252,8 @@ class ProductsApiService {
       formData.append('presentacion', productData.presentacion || productData.presentation);
       formData.append('precioUnitario', String(productData.precioUnitario || productData.precio_unitario || '0'));
       formData.append('precioMayorista', String(productData.precioMayorista || productData.precio_mayorista || '0'));
-      formData.append('stock', String(productData.stock || '0'));
+      formData.append('stockPaquete', String(productData.stockPaquete || productData.stockPaquete || '0'));
+      formData.append('stockUnid', String(productData.stockUnid || productData.stockUnid || '15'));
       
       // Agregar archivo si existe
       if (imageFile) {
@@ -247,7 +264,7 @@ class ProductsApiService {
       }
 
       // Hacer la petición
-      const apiUrl = `${API_BASE_URL}/products`;
+      const apiUrl = `${API_BASE_URL}/api/products`;
       console.log('🔗 URL completa de creación:', apiUrl);
       console.log('🔗 Método HTTP: POST (FormData)');
       
@@ -318,7 +335,7 @@ class ProductsApiService {
   // Actualizar un producto
   async updateProduct(id: number, productData: UpdateProductData): Promise<ApiProduct | null> {
     try {
-      const response = await this.request<ApiProduct | ApiResponse<ApiProduct>>(`/products/${id}`, {
+      const response = await this.request<ApiProduct | ApiResponse<ApiProduct>>(`/api/products/${id}`, {
         method: 'PUT',
         body: JSON.stringify(productData),
       });
@@ -353,7 +370,8 @@ class ProductsApiService {
         presentacion: productData.presentacion || '',
         precioUnitario: String(productData.precioUnitario || '0'),
         precioMayorista: String(productData.precioMayorista || '0'),
-        stock: String(productData.stock || '0')
+        stockPaquete: String(productData.stockPaquete || '0'),
+        stockUnid: String(productData.stockUnid || '15')
       };
       
       // Log de cada campo
@@ -371,7 +389,7 @@ class ProductsApiService {
       }
 
       // Hacer la petición con POST (Laravel lo interpreta como PUT gracias a _method)
-      const apiUrl = `${API_BASE_URL}/products/${id}`;
+      const apiUrl = `${API_BASE_URL}/api/products/${id}`;
       console.log('🔗 URL completa de actualización:', apiUrl);
       console.log('🔗 Método HTTP: POST (con _method=PUT)');
       
@@ -444,7 +462,7 @@ class ProductsApiService {
   // Eliminar un producto
   async deleteProduct(id: number): Promise<boolean> {
     try {
-      await this.request(`/products/${id}`, {
+      await this.request(`/api/products/${id}`, {
         method: 'DELETE',
       });
       
@@ -461,7 +479,7 @@ class ProductsApiService {
       const formData = new FormData();
       formData.append('image', file);
 
-      const response = await fetch(`${API_BASE_URL}/products/upload-image`, {
+      const response = await fetch(`${API_BASE_URL}/api/products/upload-image`, {
         method: 'POST',
         body: formData,
         // No incluir Content-Type para FormData
@@ -495,6 +513,9 @@ class ProductsApiService {
       imageUrl = `${baseUrl}/${imagePath}`;
     }
     
+    // Usar stockTotal si está disponible, si no calcular de stockPaquete * stockUnid
+    const stockTotal = apiProduct.stockTotal ?? ((apiProduct.stockPaquete ?? 0) * (apiProduct.stockUnid ?? 1));
+    
     return {
       id: apiProduct.idProducto,
       name: apiProduct.nombre,
@@ -502,24 +523,28 @@ class ProductsApiService {
       presentation: apiProduct.presentacion,
       precio_unitario: apiProduct.precioUnitario,
       precio_mayorista: apiProduct.precioMayorista,
-      stock: apiProduct.stock,
+      stockPaquete: apiProduct.stockPaquete ?? 0,
+      stockUnid: apiProduct.stockUnid ?? 1,
+      stockTotal: stockTotal,
+      codProduct: apiProduct.codProduct || '',
       image: imageUrl,
       category: 'Gaseosas', // Valor por defecto, se puede determinar desde el nombre
-      status: apiProduct.stock > 0 ? 'Disponible' as const : 'Agotado' as const,
+      status: stockTotal > 0 ? 'Disponible' as const : 'Agotado' as const,
       created_at: apiProduct.created_at,
       updated_at: apiProduct.updated_at
     };
   }
 
   // Función para convertir datos locales a formato de API
-  mapToApi(localData: any): CreateProductData {
+  mapToApi(localData: any): UpdateProductData {
     return {
       nombre: localData.name || localData.nombre,
       descripcion: localData.description || localData.descripcion,
       presentacion: localData.presentation || localData.presentacion,
       precioUnitario: localData.precio_unitario || localData.precioUnitario,
       precioMayorista: localData.precio_mayorista || localData.precioMayorista,
-      stock: localData.stock,
+      stockPaquete: localData.stockPaquete ?? (localData.stock ? Math.floor(localData.stock / 15) : 0),
+      stockUnid: localData.stockUnid ?? 15,
       urlImage: localData.image || localData.urlImage
     };
   }

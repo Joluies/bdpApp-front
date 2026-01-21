@@ -62,19 +62,27 @@ export interface TelefonoAPI {
 }
 
 // Interface principal para un cliente de la API
+export interface Coordenadas {
+   latitud: number;
+   longitud: number;
+}
+
 export interface ClienteAPIReal {
    idCliente: number;
    codigoCliente: string;
    nombre: string;
    apellidos: string;
-   tipoCliente: "Minorista" | "Mayorista" | "Independiente";
-   dni: string;
+   tipoCliente: "Minorista" | "Mayorista" | "Independiente" | "";  // Permitir vacío por datos reales
+   dni: string | null;  // Puede ser null según datos reales
    ruc: string | null;
    razonSocial: string | null;
    direccion: string;
+   distrito?: string;
+   fotoCliente?: string | null;
+   coordenadas?: Coordenadas | null;
    telefonos: TelefonoAPI[];
-   created_at: string;
-   updated_at: string;
+   created_at?: string;
+   updated_at?: string;
 }
 
 // Interfaces para paginación

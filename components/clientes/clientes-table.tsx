@@ -62,15 +62,33 @@ export const ClientesTable = ({ apiConnected, tipoCliente }: Props) => {
             console.log('📈 Total de páginas:', respuesta.meta.last_page);
             console.log('📊 Total de clientes:', respuesta.meta.total);
             
-            setClientes(respuesta.data);
-            setTotalPages(respuesta.meta.last_page);
-            setTotalClientes(respuesta.meta.total);
-            setPerPage(respuesta.meta.per_page);
+            setClientes(respuesta.data || []);
+            setTotalPages(respuesta.meta?.last_page || 1);
+            setTotalClientes(respuesta.meta?.total || 0);
+            setPerPage(respuesta.meta?.per_page || 10);
          } catch (error: any) {
             console.error('❌ Error al cargar clientes:', error);
             console.error('❌ Error message:', error.message);
+            console.error('❌ Error stack:', error.stack);
             
-            setError(error.message || 'Error al cargar los clientes');
+            // Diagnosticar tipo de error
+            let mensajeError = 'Error al cargar los clientes';
+            
+            if (error.message?.includes('CORS') || error.message?.includes('blocked')) {
+               mensajeError = '🔒 Error CORS: No se puede conectar con el servidor. Verifica que el servidor está corriendo y que CORS está habilitado.';
+            } else if (error.message?.includes('network') || error.message?.includes('Failed to fetch')) {
+               mensajeError = '🌐 Error de red: No se puede alcanzar el servidor. Verifica la conexión a internet y la URL de la API.';
+            } else if (error.message?.includes('timeout') || error.message?.includes('Timeout')) {
+               mensajeError = '⏱️ Timeout: El servidor tardó demasiado en responder. Intenta de nuevo.';
+            } else if (error.message?.includes('404') || error.message?.includes('not found')) {
+               mensajeError = '❌ Endpoint no encontrado (404). Verifica que la URL de la API es correcta.';
+            } else if (error.message?.includes('500') || error.message?.includes('server error')) {
+               mensajeError = '❌ Error del servidor (500). El servidor reportó un error interno.';
+            } else {
+               mensajeError = error.message || 'Error desconocido al cargar los clientes';
+            }
+            
+            setError(mensajeError);
             setClientes([]);
          } finally {
             setLoading(false);
@@ -611,7 +629,7 @@ export const ClientesTable = ({ apiConnected, tipoCliente }: Props) => {
 
                      <Flex direction="column" css={{ gap: '$2' }}>
                         <Text size={14} color="warning" weight="bold">Fecha de Registro</Text>
-                        <Text>{new Date(clienteSeleccionado.created_at).toLocaleDateString('es-PE', { year: 'numeric', month: 'long', day: 'numeric' })}</Text>
+                        <Text>{clienteSeleccionado.created_at ? new Date(clienteSeleccionado.created_at).toLocaleDateString('es-PE', { year: 'numeric', month: 'long', day: 'numeric' }) : '-'}</Text>
                      </Flex>
                   </Flex>
                )}

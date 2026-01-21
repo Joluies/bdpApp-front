@@ -1,15 +1,19 @@
 // Interfaz que coincide exactamente con la API
 export interface ApiProduct {
   idProducto: number;
+  codProduct?: string;
   nombre: string;
   descripcion: string;
   presentacion: string;
   precioUnitario: number;
   precioMayorista: number;
-  stock: number;
-  urlImage: string | null;
+  stockPaquete?: number;
+  stockUnid?: number;
+  stockTotal?: number;
+  stock?: number;
   created_at: string;
   updated_at: string;
+  urlImage: string | null;
 }
 
 // Mantener la interfaz original para compatibilidad
@@ -23,12 +27,15 @@ export interface Product extends ApiProduct {
 // Interfaz para compatibilidad con el código existente
 export interface ProductLocal {
   id: number;
+  codProduct: string;
   name: string;
   description: string;
   presentation: string;
   precio_unitario: number;
   precio_mayorista: number;
-  stock: number;
+  stockPaquete: number;
+  stockUnid: number;
+  stockTotal: number;
   image: string;
   category: string;
   status: 'Disponible' | 'Agotado' | 'Descontinuado';
@@ -61,15 +68,18 @@ export const mapApiProductToLocal = (apiProduct: ApiProduct): ProductLocal => {
   
   return {
     id: apiProduct.idProducto,
+    codProduct: apiProduct.codProduct || `PRD-${apiProduct.idProducto}`,
     name: apiProduct.nombre,
     description: apiProduct.descripcion,
     presentation: apiProduct.presentacion,
     precio_unitario: apiProduct.precioUnitario,
     precio_mayorista: apiProduct.precioMayorista,
-    stock: apiProduct.stock,
+    stockPaquete: apiProduct.stockPaquete || 0,
+    stockUnid: apiProduct.stockUnid || 0,
+    stockTotal: apiProduct.stockTotal ?? apiProduct.stock ?? 0,
     image: imageUrl,
     category: 'Gaseosas', // Valor por defecto
-    status: apiProduct.stock > 0 ? 'Disponible' : 'Agotado'
+    status: (apiProduct.stockTotal ?? apiProduct.stock ?? 0) > 0 ? 'Disponible' : 'Agotado'
   };
 };
 
@@ -81,7 +91,10 @@ export const productsData: ProductLocal[] = [
     presentation: '500ml - Botella PET',
     precio_unitario: 2.50,
     precio_mayorista: 2.20,
-    stock: 150,
+    stockTotal: 150,
+    stockPaquete: 0,
+    stockUnid: 0,
+    codProduct: 'PRD-001',
     image: '/images/products/coca-cola-500ml.jpg',
     category: 'Gaseosas',
     status: 'Disponible'
@@ -93,7 +106,10 @@ export const productsData: ProductLocal[] = [
     presentation: '600ml - Botella PET',
     precio_unitario: 2.80,
     precio_mayorista: 2.50,
-    stock: 89,
+    stockTotal: 89,
+    stockPaquete: 0,
+    stockUnid: 0,
+    codProduct: 'PRD-002',
     image: '/images/products/pepsi-600ml.jpg',
     category: 'Gaseosas',
     status: 'Disponible'
@@ -105,7 +121,10 @@ export const productsData: ProductLocal[] = [
     presentation: '355ml - Lata',
     precio_unitario: 1.80,
     precio_mayorista: 1.50,
-    stock: 200,
+    stockTotal: 200,
+    stockPaquete: 0,
+    stockUnid: 0,
+    codProduct: 'PRD-003',
     image: '/images/products/sprite-355ml.jpg',
     category: 'Gaseosas',
     status: 'Disponible'
@@ -117,7 +136,10 @@ export const productsData: ProductLocal[] = [
     presentation: '500ml - Botella Vidrio',
     precio_unitario: 3.20,
     precio_mayorista: 2.90,
-    stock: 45,
+    stockTotal: 45,
+    stockPaquete: 0,
+    stockUnid: 0,
+    codProduct: 'PRD-004',
     image: '/images/products/fanta-500ml.jpg',
     category: 'Gaseosas',
     status: 'Disponible'
@@ -129,7 +151,10 @@ export const productsData: ProductLocal[] = [
     presentation: '650ml - Botella PET',
     precio_unitario: 3.50,
     precio_mayorista: 3.20,
-    stock: 120,
+    stockTotal: 120,
+    stockPaquete: 0,
+    stockUnid: 0,
+    codProduct: 'PRD-005',
     image: '/images/products/inca-kola-650ml.jpg',
     category: 'Gaseosas',
     status: 'Disponible'
@@ -141,7 +166,10 @@ export const productsData: ProductLocal[] = [
     presentation: '350ml - Lata',
     precio_unitario: 2.20,
     precio_mayorista: 1.90,
-    stock: 78,
+    stockTotal: 78,
+    stockPaquete: 0,
+    stockUnid: 0,
+    codProduct: 'PRD-006',
     image: '/images/products/guarana-350ml.jpg',
     category: 'Gaseosas',
     status: 'Disponible'
@@ -153,7 +181,10 @@ export const productsData: ProductLocal[] = [
     presentation: '500ml - Botella PET',
     precio_unitario: 2.60,
     precio_mayorista: 2.30,
-    stock: 95,
+    stockTotal: 95,
+    stockPaquete: 0,
+    stockUnid: 0,
+    codProduct: 'PRD-007',
     image: '/images/products/seven-up-500ml.jpg',
     category: 'Gaseosas',
     status: 'Disponible'
@@ -165,7 +196,10 @@ export const productsData: ProductLocal[] = [
     presentation: '400ml - Botella Vidrio',
     precio_unitario: 2.90,
     precio_mayorista: 2.60,
-    stock: 12,
+    stockTotal: 12,
+    stockPaquete: 0,
+    stockUnid: 0,
+    codProduct: 'PRD-008',
     image: '/images/products/crush-400ml.jpg',
     category: 'Gaseosas',
     status: 'Disponible'
@@ -177,7 +211,10 @@ export const productsData: ProductLocal[] = [
     presentation: '250ml - Botella Vidrio',
     precio_unitario: 4.50,
     precio_mayorista: 4.00,
-    stock: 0,
+    stockTotal: 0,
+    stockPaquete: 0,
+    stockUnid: 0,
+    codProduct: 'PRD-009',
     image: '/images/products/schweppes-250ml.jpg',
     category: 'Gaseosas',
     status: 'Agotado'
@@ -189,7 +226,10 @@ export const productsData: ProductLocal[] = [
     presentation: '1.5L - Botella PET',
     precio_unitario: 4.80,
     precio_mayorista: 4.30,
-    stock: 67,
+    stockTotal: 67,
+    stockPaquete: 0,
+    stockUnid: 0,
+    codProduct: 'PRD-010',
     image: '/images/products/kola-real-1.5l.jpg',
     category: 'Gaseosas',
     status: 'Disponible'

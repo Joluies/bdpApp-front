@@ -59,3 +59,14 @@ Thumbs.db
 *.njsproj
 *.sln
 *.sw?
+
+# Windows reserved names
+nul
+NUL
+CON
+PRN
+AUX
+COM1
+COM2
+LPT1
+LPT2

@@ -4,7 +4,9 @@ const isDevelopment = process.env.NODE_ENV === 'development';
 // Obtener URL desde variables de entorno o usar fallback
 const getBaseUrl = (): string => {
   if (typeof window !== 'undefined' && process.env.NEXT_PUBLIC_API_URL) {
-    return `${process.env.NEXT_PUBLIC_API_URL}/api`;
+    const baseUrl = process.env.NEXT_PUBLIC_API_URL;
+    // Asegurar que la URL incluya /api
+    return baseUrl.endsWith('/api') ? baseUrl : `${baseUrl}/api`;
   }
   return 'https://api.bebidasdelperuapp.com/api';
 };

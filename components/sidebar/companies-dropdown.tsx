@@ -13,7 +13,7 @@ interface Company {
 
 const BDPLogo = ({ size = 532 }) => (
    <Image 
-      src="/logo/BDP-logo.png" 
+      src="/img/bdp.png" 
       alt="Bebidas del Perú Logo" 
       width={size} 
       height={size}

@@ -99,89 +99,25 @@ export const ProductsContent = () => {
     disponibles: products.filter((p) => p.status === "Disponible").length,
     agotados: products.filter((p) => p.status === "Agotado").length,
     valorTotal: products.reduce(
-      (sum, p) => sum + p.precio_unitario * p.stock,
+      (sum, p) => sum + p.precio_unitario * (p.stockTotal || 0),
       0
     ),
   };
 
   // Función para agregar un nuevo producto
   const handleAddProduct = async (newProductData: Omit<ProductLocal, "id">) => {
-    console.log("🚀 Iniciando proceso de agregar producto:", newProductData);
+    console.log("🚀 El modal ya creó el producto en la API, recargando lista...", newProductData);
 
     try {
-      // Validar que el producto tenga las propiedades necesarias
-      if (!newProductData.name || !newProductData.presentation) {
-        console.error("❌ Datos incompletos del producto:", newProductData);
-        alert("Error: Faltan datos requeridos del producto");
-        return;
-      }
-
-      // Asegurar que todas las propiedades existan con valores por defecto
-      const sanitizedProduct: Omit<ProductLocal, "id"> = {
-        name: newProductData.name || "",
-        description: newProductData.description || "Sin descripción",
-        presentation: newProductData.presentation || "",
-        precio_unitario: newProductData.precio_unitario || 0,
-        precio_mayorista: newProductData.precio_mayorista || 0,
-        stock: newProductData.stock || 0,
-        image: newProductData.image || "/images/products/default.jpg",
-        category: newProductData.category || "Gaseosas",
-        status: newProductData.status || "Disponible",
-      };
-
-      // Convertir datos locales al formato de la API
-      const apiProductData: any = {
-        nombre: sanitizedProduct.name,
-        descripcion: sanitizedProduct.description,
-        presentacion: sanitizedProduct.presentation,
-        precioUnitario: sanitizedProduct.precio_unitario,
-        precioMayorista: sanitizedProduct.precio_mayorista,
-        stock: sanitizedProduct.stock,
-        urlImage:
-          sanitizedProduct.image ||
-          "https://via.placeholder.com/150x150.png?text=Sin+Imagen",
-      };
-
-      console.log("🔄 Enviando producto a la API:", apiProductData);
-      const newProduct = await productsApiService.createProduct(apiProductData);
-
-      if (newProduct) {
-        console.log("✅ Producto creado exitosamente en la API:", newProduct);
-        // Agregar el producto local directamente sin convertir
-        setProducts((prev) => {
-          console.log("📋 Agregando producto a lista local");
-          const productWithId: ProductLocal = {
-            id: newProduct.idProducto || Date.now(),
-            ...sanitizedProduct,
-          };
-          const updatedList = [...prev, productWithId];
-          console.log(
-            "📊 Total de productos después de agregar:",
-            updatedList.length
-          );
-          return updatedList;
-        });
-
-        // Recargar productos desde la API para asegurar sincronización
-        console.log("🔄 Recargando productos desde la API...");
-        await loadProducts();
-      } else {
-        console.log(
-          "⚠️ API no devolvió producto. Agregando localmente como fallback"
-        );
-        // Si falla la API, agregar localmente como fallback
-        const newId = Math.max(...products.map((p) => p.id)) + 1;
-        const localProduct: ProductLocal = {
-          ...newProductData,
-          id: newId,
-        };
-        setProducts((prev) => [...prev, localProduct]);
-      }
+      // El modal ya envió el producto a la API con createProductWithImage
+      // Solo necesitamos recargar la lista de productos desde la API
+      console.log("🔄 Recargando productos desde la API...");
+      await loadProducts();
+      console.log("✅ Productos recargados exitosamente");
     } catch (error) {
-      console.error("❌ Error al agregar producto:", error);
-      console.log("📁 Agregando localmente como fallback debido a error");
-      // Fallback a agregar localmente
-      const newId = Math.max(...products.map((p) => p.id)) + 1;
+      console.error("❌ Error al recargar productos:", error);
+      // Fallback: agregar el producto localmente con un ID temporal
+      const newId = Math.max(...products.map((p) => p.id), 0) + 1;
       const localProduct: ProductLocal = {
         ...newProductData,
         id: newId,
@@ -199,41 +135,32 @@ export const ProductsContent = () => {
       console.log("📝 Iniciando actualización de producto:", {
         id,
         updatedData,
+        hasImageFile: !!updatedData.imageFile
       });
 
-      // Si hay un archivo de imagen, usar el método con FormData
-      if (updatedData.imageFile) {
-        console.log("📸 Detectada imagen para actualizar");
-        console.log(
-          "📋 Campos disponibles en updatedData:",
-          Object.keys(updatedData)
-        );
+      // Preparar datos sin el archivo para ambos casos
+      const dataWithoutFile = { ...updatedData };
+      delete dataWithoutFile.imageFile;
 
-        // Preparar datos para la API - Asegurar que todos los campos tengan valores
+      // Si hay un archivo de imagen NUEVO (no solo URL), usar el método con FormData
+      if (updatedData.imageFile && updatedData.imageFile instanceof File) {
+        console.log("📸 Detectada imagen nueva para actualizar");
+        
+        // Preparar datos para la API
         const apiUpdateData = {
-          nombre: updatedData?.name ?? "",
-          descripcion: updatedData?.description ?? "",
-          presentacion: updatedData?.presentation ?? "",
-          precioUnitario: updatedData?.precio_unitario ?? 0,
-          precioMayorista: updatedData?.precio_mayorista ?? 0,
-          stock: updatedData?.stock ?? 0
+          nombre: dataWithoutFile?.name ?? "",
+          descripcion: dataWithoutFile?.description ?? "",
+          presentacion: dataWithoutFile?.presentation ?? "",
+          precioUnitario: dataWithoutFile?.precio_unitario ?? 0,
+          precioMayorista: dataWithoutFile?.precio_mayorista ?? 0,
+          stockPaquete: dataWithoutFile?.stockPaquete ?? 0,
+          stockUnid: dataWithoutFile?.stockUnid ?? 15
         };
-        console.log("📊 Datos a enviar al API:", apiUpdateData);
-        console.log("🔄 Enviando actualización con imagen a la API...");
-        console.log(
-          "🔗 URL completa: " +
-            `${process.env.NEXT_PUBLIC_API_URL}/api/products/${id}`
-        );
-        console.log("📁 ImageFile disponible:", !!updatedData.imageFile);
-        if (updatedData.imageFile) {
-          console.log("   - Nombre:", updatedData.imageFile.name);
-          console.log("   - Tipo:", updatedData.imageFile.type);
-          console.log("   - Tamaño:", updatedData.imageFile.size);
-        } else {
-          console.log("   ⚠️ imageFile es null/undefined!");
-        }
+        
+        console.log("📊 Datos a enviar al API con imagen:", apiUpdateData);
+        console.log("📸 Archivo: " + updatedData.imageFile.name + " (" + updatedData.imageFile.size + " bytes)");
 
-        // 🔥 LLAMADA REAL AL API CON IMAGEN
+        // 🔥 LLAMADA AL API CON IMAGEN
         const updatedProduct = await productsApiService.updateProductWithImage(
           id,
           apiUpdateData,
@@ -242,30 +169,18 @@ export const ProductsContent = () => {
 
         if (updatedProduct) {
           console.log("✅ Producto actualizado con imagen en la API");
-          console.log("📦 Producto API recibido:", updatedProduct);
-          // Convertir el producto actualizado a formato local
           const localProduct = mapApiProductToLocal(updatedProduct);
-          console.log("🖼️ Producto local después de mapeo:", localProduct);
           setProducts((prev) =>
             prev.map((p) => (p.id === id ? localProduct : p))
           );
-        } else {
-          console.log(
-            "⚠️ API no devolvió producto actualizado, actualizando localmente"
-          );
-          // Fallback a actualizar localmente
-          const dataWithoutFile = { ...updatedData };
-          delete dataWithoutFile.imageFile;
-          setProducts((prev) =>
-            prev.map((p) => (p.id === id ? { ...p, ...dataWithoutFile } : p))
-          );
         }
       } else {
-        // Sin imagen, usar el método normal
-        console.log("📝 Actualización sin imagen, usando método estándar");
+        // Sin imagen nueva o imagen es null, usar método estándar
+        console.log("📝 Actualización sin imagen nueva, usando método estándar");
 
         // Convertir datos locales al formato de la API
-        const apiUpdateData = productsApiService.mapToApi(updatedData);
+        const apiUpdateData = productsApiService.mapToApi(dataWithoutFile);
+        console.log("📊 Datos a enviar al API sin imagen:", apiUpdateData);
 
         const updatedProduct = await productsApiService.updateProduct(
           id,
@@ -274,27 +189,25 @@ export const ProductsContent = () => {
 
         if (updatedProduct) {
           console.log("✅ Producto actualizado en la API");
-          // Convertir el producto actualizado a formato local
           const localProduct = mapApiProductToLocal(updatedProduct);
           setProducts((prev) =>
             prev.map((p) => (p.id === id ? localProduct : p))
           );
-        } else {
-          console.log("⚠️ API no devolvió producto, actualizando localmente");
-          // Fallback a actualizar localmente
-          setProducts((prev) =>
-            prev.map((p) => (p.id === id ? { ...p, ...updatedData } : p))
-          );
         }
       }
+      
+      // Recargar productos desde API para asegurar sincronización
+      console.log("🔄 Recargando productos desde API para sincronización...");
+      await loadProducts();
+      
     } catch (error) {
       console.error("❌ Error al actualizar producto:", error);
-      // Fallback a actualizar localmente
-      const dataWithoutFile = { ...updatedData };
-      delete dataWithoutFile.imageFile;
-      setProducts((prev) =>
-        prev.map((p) => (p.id === id ? { ...p, ...dataWithoutFile } : p))
-      );
+      // Intentar recargar desde API como fallback
+      try {
+        await loadProducts();
+      } catch (e) {
+        console.error("❌ Error al recargar productos:", e);
+      }
     }
   };
 

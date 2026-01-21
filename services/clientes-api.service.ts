@@ -21,23 +21,31 @@ export interface TelefonoEnvio {
    description: string;
 }
 
+// Interfaces para coordenadas
+export interface Coordenadas {
+   latitud: number;
+   longitud: number;
+}
+
 // Interfaces para la respuesta real de la API con paginación
 export interface ClienteAPIReal {
    idCliente: number;
    codigoCliente: string;
    nombre: string;
    apellidos: string;
-   tipoCliente: "Minorista" | "Mayorista" | "Independiente";
-   dni: string;
+   tipoCliente: "Minorista" | "Mayorista" | "Independiente" | "";  // Permitir vacío por datos reales
+   dni: string | null;  // Puede ser null según datos reales
    ruc: string | null;
    razon_social?: string | null;  // Mantener para compatibilidad
    razonSocial: string | null;    // Nuevo campo de la API
    direccion: string;
    distrito?: string;              // Nuevo campo para el distrito
    distritio?: string;             // Alternativamente por typo en base de datos
+   fotoCliente?: string | null;    // Ruta o datos de foto
+   coordenadas?: Coordenadas | null;  // Coordenadas GPS del cliente
    telefonos: TelefonoAPI[];      // Array de teléfonos
-   created_at: string;
-   updated_at: string;
+   created_at?: string;
+   updated_at?: string;
 }
 
 // Interfaces para paginación
@@ -105,6 +113,7 @@ class ClientesApiService {
                'Accept': 'application/json',
             },
             mode: 'cors', // Habilitar CORS explícitamente
+            credentials: 'include', // Incluir credenciales si es necesario
             signal: controller.signal,
          };
 
@@ -119,7 +128,24 @@ class ClientesApiService {
          console.log(`⚙️ Request Config:`, config);
 
          // Intentar la petición
-         const response = await fetch(url, config);
+         let response: Response;
+         try {
+            response = await fetch(url, config);
+         } catch (fetchError: any) {
+            // Limpiar timeout
+            clearTimeout(timeoutId);
+            
+            // Diagnosticar error de fetch específico
+            console.error('❌ Error en fetch:', fetchError);
+            
+            if (fetchError.name === 'AbortError') {
+               throw new Error(`Timeout after ${currentConfig.TIMEOUT}ms. El servidor tardó demasiado en responder. URL: ${url}`);
+            } else if (fetchError.message?.includes('Failed to fetch') || fetchError.message?.includes('network')) {
+               throw new Error(`Error de red (CORS o conexión): ${fetchError.message}. Verifica que el servidor está corriendo en ${url}`);
+            } else {
+               throw new Error(`Error de conexión: ${fetchError.message}`);
+            }
+         }
          
          // Limpiar timeout
          clearTimeout(timeoutId);

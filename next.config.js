@@ -7,6 +7,24 @@ const nextConfig = {
   compress: true,
   generateEtags: true,
   
+  // Webpack configuration to ignore problematic directories
+  webpack: (config, { isServer }) => {
+    // Ignore System Volume Information and other Windows system directories
+    config.watchOptions = {
+      ...config.watchOptions,
+      ignored: [
+        '**/node_modules/**',
+        '**/.next/**',
+        '**/.git/**',
+        '**/System Volume Information/**',
+        '**/$RECYCLE.BIN/**',
+        '**/.vscode/**',
+        '**/dist/**',
+      ],
+    };
+    return config;
+  },
+  
   // CORS y headers de seguridad
   async headers() {
     return [

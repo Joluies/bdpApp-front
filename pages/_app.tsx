@@ -4,6 +4,7 @@ import {ThemeProvider as NextThemesProvider} from 'next-themes';
 import {Layout} from '../components/layout/layout';
 import { AuthProvider } from '../context/auth.context';
 import { useEffect, useState } from 'react';
+import '../styles/globals.css';
 
 const lightTheme = createTheme({
    type: 'light',

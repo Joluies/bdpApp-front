@@ -31,7 +31,8 @@ export const EditProductModal: React.FC<EditProductModalProps> = ({
       presentation: '',
       precio_unitario: '',
       precio_mayorista: '',
-      stock: '',
+      stockPaquete: '',
+      stockUnid: '15',
       image: '',
       category: 'Gaseosas',
       status: 'Disponible' as 'Disponible' | 'Agotado' | 'Descontinuado'
@@ -54,7 +55,8 @@ export const EditProductModal: React.FC<EditProductModalProps> = ({
             presentation: product.presentation,
             precio_unitario: product.precio_unitario.toString(),
             precio_mayorista: product.precio_mayorista.toString(),
-            stock: product.stock.toString(),
+            stockPaquete: product.stockPaquete ? product.stockPaquete.toString() : '',
+            stockUnid: product.stockUnid ? product.stockUnid.toString() : '15',
             image: product.image,
             category: product.category,
             status: product.status
@@ -97,30 +99,47 @@ export const EditProductModal: React.FC<EditProductModalProps> = ({
       }
    };
 
+   const [isLoading, setIsLoading] = useState(false);
+
    const handleSubmit = async () => {
       if (!product) return;
 
       // Validar campos requeridos
       if (!formData.name || !formData.presentation || 
-          !formData.precio_unitario || !formData.precio_mayorista || !formData.stock) {
+          !formData.precio_unitario || !formData.precio_mayorista || !formData.stockPaquete) {
+         alert('Por favor, completa todos los campos requeridos');
          return;
       }
 
-      const updatedData: Partial<ProductLocal> & { imageFile?: File | null } = {
-         name: formData.name,
-         description: formData.description || 'Sin descripción',
-         presentation: formData.presentation,
-         precio_unitario: parseFloat(formData.precio_unitario),
-         precio_mayorista: parseFloat(formData.precio_mayorista),
-         stock: parseInt(formData.stock),
-         image: formData.image || '/img/productos/default.jpg',
-         category: Array.from(selectedCategory)[0] as string,
-         status: Array.from(selectedStatus)[0] as 'Disponible' | 'Agotado' | 'Descontinuado',
-         imageFile: imageFile // Pasar el archivo de imagen
-      };
+      setIsLoading(true);
 
-      await onUpdateProduct(product.id, updatedData);
-      onClose();
+      try {
+         const updatedData: Partial<ProductLocal> & { imageFile?: File | null } = {
+            name: formData.name,
+            description: formData.description || 'Sin descripción',
+            presentation: formData.presentation,
+            precio_unitario: parseFloat(formData.precio_unitario),
+            precio_mayorista: parseFloat(formData.precio_mayorista),
+            stockPaquete: parseInt(formData.stockPaquete),
+            stockUnid: parseInt(formData.stockUnid),
+            stockTotal: parseInt(formData.stockPaquete) * parseInt(formData.stockUnid),
+            image: formData.image || '/img/productos/default.jpg',
+            category: Array.from(selectedCategory)[0] as string,
+            status: Array.from(selectedStatus)[0] as 'Disponible' | 'Agotado' | 'Descontinuado',
+            imageFile: imageFile // Pasar el archivo de imagen
+         };
+
+         console.log('📝 Datos a actualizar:', updatedData);
+         await onUpdateProduct(product.id, updatedData);
+         console.log('✅ Producto actualizado exitosamente');
+         alert('¡Producto actualizado exitosamente!');
+         onClose();
+      } catch (error) {
+         console.error('❌ Error al actualizar producto:', error);
+         alert(`Error al actualizar: ${(error as any)?.message || 'Intenta de nuevo'}`);
+      } finally {
+         setIsLoading(false);
+      }
    };
 
    return (
@@ -214,18 +233,44 @@ export const EditProductModal: React.FC<EditProductModalProps> = ({
                </Flex>
                
                {/* Stock */}
-               <Input
-                  clearable
-                  bordered
-                  fullWidth
-                  color="success"
-                  size="lg"
-                  type="number"
-                  placeholder="0"
-                  label="Stock Disponible*"
-                  value={formData.stock}
-                  onChange={handleInputChange('stock')}
-               />
+               <Flex css={{gap: '$4', '@sm': {flexDirection: 'column'}}}>
+                  <Input
+                     clearable
+                     bordered
+                     fullWidth
+                     color="success"
+                     size="lg"
+                     type="number"
+                     placeholder="0"
+                     label="Stock de Paquetes*"
+                     value={formData.stockPaquete}
+                     onChange={handleInputChange('stockPaquete')}
+                  />
+                  
+                  <Dropdown>
+                     <Dropdown.Button flat color="success">
+                        {formData.stockUnid} unid/paquete
+                     </Dropdown.Button>
+                     <Dropdown.Menu
+                        aria-label="Unidades por paquete"
+                        color="success"
+                        disallowEmptySelection
+                        selectionMode="single"
+                        selectedKeys={new Set([formData.stockUnid])}
+                        onSelectionChange={(keys) => {
+                           const value = Array.from(keys)[0] as string;
+                           setFormData(prev => ({
+                              ...prev,
+                              stockUnid: value
+                           }));
+                        }}
+                     >
+                        <Dropdown.Item key="4">4 unidades</Dropdown.Item>
+                        <Dropdown.Item key="6">6 unidades</Dropdown.Item>
+                        <Dropdown.Item key="15">15 unidades</Dropdown.Item>
+                     </Dropdown.Menu>
+                  </Dropdown>
+               </Flex>
                
                {/* Selectores */}
                <Flex css={{gap: '$4', '@sm': {flexDirection: 'column'}}}>
@@ -343,7 +388,7 @@ export const EditProductModal: React.FC<EditProductModalProps> = ({
             </Flex>
          </Modal.Body>
          <Modal.Footer>
-            <Button auto flat color="error" onClick={onClose}>
+            <Button auto flat color="error" onClick={onClose} disabled={isLoading}>
                Cancelar
             </Button>
             <Button 
@@ -357,9 +402,9 @@ export const EditProductModal: React.FC<EditProductModalProps> = ({
                }}
                onClick={handleSubmit}
                disabled={!formData.name || !formData.presentation || 
-                        !formData.precio_unitario || !formData.precio_mayorista || !formData.stock}
+                        !formData.precio_unitario || !formData.precio_mayorista || !formData.stockPaquete || isLoading}
             >
-               Actualizar Producto
+               {isLoading ? 'Actualizando...' : 'Actualizar Producto'}
             </Button>
          </Modal.Footer>
       </Modal>

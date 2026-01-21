@@ -30,9 +30,10 @@ export const AddProductModal: React.FC<AddProductModalProps> = ({
       presentation: '',
       precio_unitario: '',
       precio_mayorista: '',
-      stock: '',
+      stockPaquete: '',
+      stockUnid: '15',
       image: '',
-      category: 'Gaseosas',
+      category: '',
       status: 'Disponible' as 'Disponible' | 'Agotado' | 'Descontinuado'
    });
 
@@ -43,7 +44,7 @@ export const AddProductModal: React.FC<AddProductModalProps> = ({
    const [selectedCategory, setSelectedCategory] = useState(new Set(['Gaseosas']));
    const [selectedStatus, setSelectedStatus] = useState(new Set(['Disponible']));
 
-   const categories = ['Gaseosas', 'Jugos', 'Aguas', 'Energizantes', 'Otros'];
+   const categories = ['Gaseosas', 'Licores', 'Aguas', 'Energizantes', 'Otros'];
    const statusOptions = ['Disponible', 'Agotado', 'Descontinuado'];
 
    const resetForm = () => {
@@ -53,7 +54,8 @@ export const AddProductModal: React.FC<AddProductModalProps> = ({
          presentation: '',
          precio_unitario: '',
          precio_mayorista: '',
-         stock: '',
+         stockPaquete: '',
+         stockUnid: '15',
          image: '',
          category: 'Gaseosas',
          status: 'Disponible'
@@ -121,7 +123,7 @@ export const AddProductModal: React.FC<AddProductModalProps> = ({
       
       // Validar campos requeridos
       if (!formData.name || !formData.presentation || 
-          !formData.precio_unitario || !formData.precio_mayorista || !formData.stock) {
+          !formData.precio_unitario || !formData.precio_mayorista || !formData.stockPaquete) {
          console.log('❌ Validación fallida - campos requeridos faltantes');
          alert('Por favor, completa todos los campos requeridos');
          return;
@@ -137,7 +139,8 @@ export const AddProductModal: React.FC<AddProductModalProps> = ({
             presentacion: formData.presentation,
             precioUnitario: parseFloat(formData.precio_unitario),
             precioMayorista: parseFloat(formData.precio_mayorista),
-            stock: parseInt(formData.stock)
+            stockPaquete: parseInt(formData.stockPaquete),
+            stockUnid: parseInt(formData.stockUnid)
          };
 
          console.log('📤 Enviando datos a la API...', apiData);
@@ -147,12 +150,15 @@ export const AddProductModal: React.FC<AddProductModalProps> = ({
          
          // También crear el producto local para la tabla
          const newProduct: Omit<ProductLocal, 'id'> = {
+            codProduct: `PRD-${Date.now()}`,
             name: formData.name,
             description: formData.description || 'Sin descripción',
             presentation: formData.presentation,
             precio_unitario: parseFloat(formData.precio_unitario),
             precio_mayorista: parseFloat(formData.precio_mayorista),
-            stock: parseInt(formData.stock),
+            stockPaquete: parseInt(formData.stockPaquete),
+            stockUnid: parseInt(formData.stockUnid),
+            stockTotal: parseInt(formData.stockPaquete) * parseInt(formData.stockUnid),
             image: imagePreview || '/images/products/default.jpg',
             category: Array.from(selectedCategory)[0] as string,
             status: Array.from(selectedStatus)[0] as 'Disponible' | 'Agotado' | 'Descontinuado'
@@ -272,18 +278,44 @@ export const AddProductModal: React.FC<AddProductModalProps> = ({
                </Flex>
                
                {/* Stock */}
-               <Input
-                  clearable
-                  bordered
-                  fullWidth
-                  color="success"
-                  size="lg"
-                  type="number"
-                  placeholder="0"
-                  label="Stock*"
-                  value={formData.stock}
-                  onChange={handleInputChange('stock')}
-               />
+               <Flex css={{ gap: '$4' }}>
+                  <Input
+                     clearable
+                     bordered
+                     fullWidth
+                     color="success"
+                     size="lg"
+                     type="number"
+                     placeholder="0"
+                     label="Stock de Paquetes*"
+                     value={formData.stockPaquete}
+                     onChange={handleInputChange('stockPaquete')}
+                  />
+                  
+                  <Dropdown>
+                     <Dropdown.Button flat color="success">
+                        {formData.stockUnid} unid/paquete
+                     </Dropdown.Button>
+                     <Dropdown.Menu
+                        aria-label="Unidades por paquete"
+                        color="success"
+                        disallowEmptySelection
+                        selectionMode="single"
+                        selectedKeys={new Set([formData.stockUnid])}
+                        onSelectionChange={(keys) => {
+                           const value = Array.from(keys)[0] as string;
+                           setFormData(prev => ({
+                              ...prev,
+                              stockUnid: value
+                           }));
+                        }}
+                     >
+                        <Dropdown.Item key="4">4 unidades</Dropdown.Item>
+                        <Dropdown.Item key="6">6 unidades</Dropdown.Item>
+                        <Dropdown.Item key="15">15 unidades</Dropdown.Item>
+                     </Dropdown.Menu>
+                  </Dropdown>
+               </Flex>
                
                {/* Categoría y Estado */}
                <Flex css={{ gap: '$4' }}>
@@ -418,7 +450,7 @@ export const AddProductModal: React.FC<AddProductModalProps> = ({
                }}
                onClick={handleSubmit}
                disabled={isLoading || !formData.name || !formData.presentation || 
-                        !formData.precio_unitario || !formData.precio_mayorista || !formData.stock}
+                        !formData.precio_unitario || !formData.precio_mayorista || !formData.stockPaquete}
             >
                {isLoading ? '🔄 Creando...' : 'Agregar Producto'}
             </Button>

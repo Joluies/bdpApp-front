@@ -51,6 +51,18 @@ export const ProductsTable = ({products, onUpdateProduct, onDeleteProduct}: Prop
 
    const renderCell = (product: ProductLocal, columnKey: React.Key) => {
       switch (columnKey) {
+         case 'codProduct':
+            return (
+               <Text
+                  css={{
+                     fontSize: '$sm',
+                     fontWeight: '$semibold',
+                     color: '#034F32'
+                  }}
+               >
+                  {product.codProduct}
+               </Text>
+            );
          case 'image':
             return (
                <Box css={{display: 'flex', alignItems: 'center'}}>
@@ -176,16 +188,16 @@ export const ProductsTable = ({products, onUpdateProduct, onDeleteProduct}: Prop
          case 'stock':
             return (
                <Badge
-                  color={product.stock > 50 ? "success" : product.stock > 0 ? "warning" : "error"}
+                  color={product.stockTotal > 50 ? "success" : product.stockTotal > 0 ? "warning" : "error"}
                   variant="flat"
                   css={{
-                     backgroundColor: product.stock > 50 ? '#C8ECC9' : 
-                                    product.stock > 0 ? '#FFF3CD' : '#F8D7DA',
-                     color: product.stock > 50 ? '#034F32' : 
-                           product.stock > 0 ? '#856404' : '#721C24'
+                     backgroundColor: product.stockTotal > 50 ? '#C8ECC9' : 
+                                    product.stockTotal > 0 ? '#FFF3CD' : '#F8D7DA',
+                     color: product.stockTotal > 50 ? '#034F32' : 
+                           product.stockTotal > 0 ? '#856404' : '#721C24'
                   }}
                >
-                  {product.stock} unid.
+                  {product.stockPaquete} pqtes × {product.stockUnid} = {product.stockTotal} unid.
                </Badge>
             );
          case 'status':
@@ -243,6 +255,7 @@ export const ProductsTable = ({products, onUpdateProduct, onDeleteProduct}: Prop
    };
 
 const columns = [
+      {name: 'CÓDIGO', uid: 'codProduct'},
       {name: 'IMAGEN', uid: 'image'},
       {name: 'NOMBRE', uid: 'name'},
       {name: 'DESCRIPCIÓN', uid: 'description'},

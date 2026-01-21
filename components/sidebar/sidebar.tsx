@@ -17,6 +17,7 @@ import {VentasIcon} from '../icons/sidebar/ventas-icon';
 import {DevIcon} from '../icons/sidebar/dev-icon';
 import {ViewIcon} from '../icons/sidebar/view-icon';
 import {SettingsIcon} from '../icons/sidebar/settings-icon';
+import {BonificacionesIcon} from '../icons/sidebar/bonificaciones-icon';
 import {CollapseItems} from './collapse-items';
 import {CollapseItemsWithAction} from './collapse-items-with-action';
 import {SidebarItem} from './sidebar-item';
@@ -117,6 +118,13 @@ export const SidebarWrapper = () => {
                         icon={<DespachoIcon />}
                         href="/rutas"
                      />
+                     <SidebarItem
+                        isActive={router.pathname === '/bonificaciones'}
+                        title="Bonificaciones"
+                        icon={<BonificacionesIcon />}
+                        href="/bonificaciones"
+                     />
+                     
                      <CollapseItemsWithAction
                         title="Reportes"
                         icon={<ReportsIcon />}

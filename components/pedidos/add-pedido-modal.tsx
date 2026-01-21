@@ -33,7 +33,7 @@ interface Cliente {
   nombre: string;
   tipo?: string;
   ruc?: string | null;
-  dni?: string;
+  dni?: string | null;
 }
 
 interface Vendedor {
