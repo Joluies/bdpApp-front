@@ -9,23 +9,29 @@ export const CardTransactions = () => {
          css={{
             mw: '375px',
             height: 'auto',
-            bg: '$accents0',
+            background: 'linear-gradient(135deg, #f5f5f5 0%, #ffffff 100%)',
             borderRadius: '$xl',
-            // alignContent: 'start',
             justifyContent: 'start',
             px: '$6',
+            boxShadow: '0 10px 30px rgba(0, 0, 0, 0.08)',
+            border: '1px solid #e5e7eb',
+            position: 'relative',
+            overflow: 'hidden',
+            '&:hover': {
+               boxShadow: '0 15px 40px rgba(0, 0, 0, 0.12)',
+               transform: 'translateY(-4px)',
+            },
+            transition: 'all 0.3s ease',
          }}
       >
          <Card.Body css={{py: '$10'}}>
             <Flex css={{gap: '$5'}} justify={'center'}>
-               <Text h3 css={{textAlign: 'center'}}>
+               <Text h3 css={{textAlign: 'center', color: '#1f2937', fontWeight: '600'}}>
                   Latest Transactions
                </Text>
             </Flex>
             <Flex
                css={{gap: '$6', py: '$4'}}
-               // align={'center'}
-
                direction={'column'}
             >
                <Flex css={{gap: '$6'}} align={'center'} justify="between">
@@ -37,13 +43,13 @@ export const CardTransactions = () => {
                      color="gradient"
                      stacked
                   />
-                  <Text span size={'$base'} weight={'semibold'}>
+                  <Text span size={'$base'} weight={'semibold'} css={{color: '#1f2937'}}>
                      Jose Perez
                   </Text>
-                  <Text span css={{color: '$green600'}} size={'$xs'}>
+                  <Text span css={{color: '#10b981', fontWeight: 'semibold'}} size={'$xs'}>
                      4500 USD
                   </Text>
-                  <Text span css={{color: '$accents8'}} size={'$xs'}>
+                  <Text span css={{color: '#9ca3af'}} size={'$xs'}>
                      9/20/2021
                   </Text>
                </Flex>
@@ -57,13 +63,13 @@ export const CardTransactions = () => {
                      color="gradient"
                      stacked
                   />
-                  <Text span size={'$base'} weight={'semibold'}>
+                  <Text span size={'$base'} weight={'semibold'} css={{color: '#1f2937'}}>
                      Andrew Steven
                   </Text>
-                  <Text span css={{color: '$green600'}} size={'$xs'}>
+                  <Text span css={{color: '#10b981', fontWeight: 'semibold'}} size={'$xs'}>
                      4500 USD
                   </Text>
-                  <Text span css={{color: '$accents8'}} size={'$xs'}>
+                  <Text span css={{color: '#9ca3af'}} size={'$xs'}>
                      9/20/2021
                   </Text>
                </Flex>
@@ -76,13 +82,13 @@ export const CardTransactions = () => {
                      color="gradient"
                      stacked
                   />
-                  <Text span size={'$base'} weight={'semibold'}>
+                  <Text span size={'$base'} weight={'semibold'} css={{color: '#1f2937'}}>
                      Ruben Garcia
                   </Text>
-                  <Text span css={{color: '$green600'}} size={'$xs'}>
+                  <Text span css={{color: '#10b981', fontWeight: 'semibold'}} size={'$xs'}>
                      1500 USD
                   </Text>
-                  <Text span css={{color: '$accents8'}} size={'$xs'}>
+                  <Text span css={{color: '#9ca3af'}} size={'$xs'}>
                      2/20/2022
                   </Text>
                </Flex>
@@ -95,7 +101,7 @@ export const CardTransactions = () => {
                      color="gradient"
                      stacked
                   />
-                  <Text span size={'$base'} weight={'semibold'}>
+                  <Text span size={'$base'} weight={'semibold'} css={{color: '#1f2937'}}>
                      Perla Garcia
                   </Text>
                   <Text span css={{color: '$green600'}} size={'$xs'}>

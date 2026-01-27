@@ -16,12 +16,21 @@ export const CardAgents = () => {
       <Card
          css={{
             mw: '375px',
-            bg: '$accents0',
+            background: 'linear-gradient(135deg, #f5f5f5 0%, #ffffff 100%)',
             height: '275px',
             borderRadius: '$xl',
             alignContent: 'center',
             justifyContent: 'center',
             px: '$6',
+            boxShadow: '0 10px 30px rgba(0, 0, 0, 0.08)',
+            border: '1px solid #e5e7eb',
+            position: 'relative',
+            overflow: 'hidden',
+            '&:hover': {
+               boxShadow: '0 15px 40px rgba(0, 0, 0, 0.12)',
+               transform: 'translateY(-4px)',
+            },
+            transition: 'all 0.3s ease',
          }}
       >
          <Card.Body css={{py: '$10', gap: '$4'}}>
@@ -37,14 +46,15 @@ export const CardAgents = () => {
                   justify={'center'}
                   css={{
                      width: '150px',
-                     border: '2.5px dashed $border',
+                     border: '2.5px dashed #d1d5db',
                      borderRadius: '$base',
+                     background: 'rgba(59, 130, 246, 0.05)',
                   }}
                >
                   {'⭐'}
                   <Box>
                      <Flex direction={'column'}>
-                        <Text h3 css={{margin: 0}}>
+                        <Text h3 css={{margin: 0, color: '#1f2937', fontWeight: '600'}}>
                            Agents
                         </Text>
                      </Flex>
@@ -52,7 +62,7 @@ export const CardAgents = () => {
                </Flex>
             </Flex>
             <Flex css={{gap: '$6', py: '$4'}} align={'center'}>
-               <Text span size={'$xs'}>
+               <Text span size={'$xs'} css={{color: '#6b7280'}}>
                   Meet your agenda and see their ranks to get the best results
                </Text>
             </Flex>

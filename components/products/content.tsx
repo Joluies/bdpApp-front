@@ -261,20 +261,20 @@ export const ProductsContent = () => {
                 h1
                 css={{
                   textAlign: "center",
-                  color: "#034F32",
+                  color: '#1e40af',
                   fontSize: "$3xl",
-                  fontWeight: "$bold",
+                  fontWeight: "bold",
                   "@sm": {
                     textAlign: "inherit",
                   },
                 }}
               >
-                Productos - Bebidas Gaseosas
+                📦 Productos - Bebidas Gaseosas
               </Text>
               <Text
                 css={{
                   textAlign: "center",
-                  color: "#5CAC4C",
+                  color: "#6b7280",
                   fontSize: "$lg",
                   "@sm": {
                     textAlign: "inherit",
@@ -299,11 +299,12 @@ export const ProductsContent = () => {
                 onClick={loadProducts}
                 disabled={loading}
                 css={{
-                  backgroundColor: "#E8F5E8",
-                  color: "#5CAC4C",
-                  border: "1px solid #5CAC4C",
+                  backgroundColor: "rgba(30, 64, 175, 0.1)",
+                  color: "#1e40af",
+                  border: "2px solid #1e40af",
+                  fontWeight: 'bold',
                   "&:hover": {
-                    backgroundColor: "#D4F4D4",
+                    backgroundColor: "rgba(30, 64, 175, 0.2)",
                   },
                 }}
               >

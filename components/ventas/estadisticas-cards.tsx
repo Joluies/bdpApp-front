@@ -56,23 +56,37 @@ const EstadisticaCard: React.FC<EstadisticaCardProps> = ({
    const getColorClasses = () => {
       switch (color) {
          case 'success':
-            return 'bg-success-50 border-success-200';
+            return {
+               background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)',
+               borderColor: '#10b981',
+            };
          case 'warning':
-            return 'bg-warning-50 border-warning-200';
+            return {
+               background: 'linear-gradient(135deg, #f59e0b 0%, #d97706 100%)',
+               borderColor: '#f59e0b',
+            };
          case 'secondary':
-            return 'bg-secondary-50 border-secondary-200';
+            return {
+               background: 'linear-gradient(135deg, #06b6d4 0%, #0891b2 100%)',
+               borderColor: '#06b6d4',
+            };
          default:
-            return 'bg-primary-50 border-primary-200';
+            return {
+               background: 'linear-gradient(135deg, #3b82f6 0%, #1e40af 100%)',
+               borderColor: '#3b82f6',
+            };
       }
    };
+
+   const isSecondary = color === 'secondary' || color === 'success' || color === 'warning';
 
    if (!isClient) {
       return (
          <Card
             css={{
-               padding: '$6',
-               borderRadius: '$lg',
-               border: '2px solid',
+               padding: '$8',
+               borderRadius: '$xl',
+               border: 'none',
                minHeight: '120px',
             }}
          >
@@ -81,37 +95,52 @@ const EstadisticaCard: React.FC<EstadisticaCardProps> = ({
       );
    }
 
+   const colorStyles = getColorClasses();
+
    return (
       <Card
          css={{
-            padding: '$6',
-            borderRadius: '$lg',
-            border: '2px solid',
-            transition: 'all 0.2s ease',
+            padding: '$8',
+            borderRadius: '$xl',
+            border: 'none',
+            background: colorStyles.background,
+            position: 'relative',
+            overflow: 'hidden',
+            boxShadow: '0 10px 30px ' + (
+               color === 'success' ? 'rgba(16, 185, 129, 0.25)' :
+               color === 'warning' ? 'rgba(245, 158, 11, 0.25)' :
+               color === 'secondary' ? 'rgba(6, 182, 212, 0.25)' :
+               'rgba(59, 130, 246, 0.25)'
+            ),
+            transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
             '&:hover': {
-               transform: 'translateY(-2px)',
-               boxShadow: '0 4px 20px rgba(0,0,0,0.1)',
+               transform: 'translateY(-4px)',
+               boxShadow: '0 15px 40px ' + (
+                  color === 'success' ? 'rgba(16, 185, 129, 0.35)' :
+                  color === 'warning' ? 'rgba(245, 158, 11, 0.35)' :
+                  color === 'secondary' ? 'rgba(6, 182, 212, 0.35)' :
+                  'rgba(59, 130, 246, 0.35)'
+               ),
             }
          }}
-         className={getColorClasses()}
       >
          <Flex direction="column" css={{ gap: '$2' }}>
-            <Text size="$sm" weight="medium" color="$gray600">
+            <Text size="$sm" weight="medium" color={isSecondary ? 'white' : '$gray600'}>
                {title}
             </Text>
             
             <Flex align="center" justify="between">
                <Box>
-                  <Text size="$2xl" weight="bold" color="$gray900">
+                  <Text size="$2xl" weight="bold" color={isSecondary ? 'white' : '$gray900'}>
                      {cantidad}
                   </Text>
-                  <Text size="$xs" color="$gray500">
+                  <Text size="$xs" color={isSecondary ? 'rgba(255, 255, 255, 0.7)' : '$gray500'}>
                      ventas
                   </Text>
                </Box>
                
                <Box css={{ textAlign: 'right' }}>
-                  <Text size="$lg" weight="semibold" color="$gray800">
+                  <Text size="$lg" weight="semibold" color={isSecondary ? 'white' : '$gray800'}>
                      {formatCurrency(total)}
                   </Text>
                   {porcentajeCambio !== undefined && (

@@ -139,12 +139,17 @@ export const BonificacionesContent = () => {
 
   return (
     <Box css={{ p: '$6', gap: '$5', display: 'flex', flexDirection: 'column' }}>
-      <Flex align="center" justify="between">
+      <Flex align="center" justify="between" css={{
+        background: 'linear-gradient(135deg, #ec4899 0%, #be185d 100%)',
+        padding: '$6',
+        borderRadius: '$xl',
+        marginBottom: '$4',
+      }}>
         <Box>
-          <Text h2 size="$2xl" weight="bold" color="#034F32" css={{ mb: '$2' }}>
-            🎁 Bonificaciones
+          <Text h2 size="$2xl" weight="bold" color="white" css={{ mb: '$2' }}>
+            🎁 Gestión de Bonificaciones
           </Text>
-          <Text size="$md" color="#666">
+          <Text size="$md" color="rgba(255, 255, 255, 0.8)">
             Gestiona y crea bonificaciones especiales para tus productos
           </Text>
         </Box>
@@ -154,7 +159,15 @@ export const BonificacionesContent = () => {
           color="success"
           icon={<PlusIcon size={20} />}
           onClick={handleNuevaBonificacion}
-          css={{ fontSize: '$lg', fontWeight: '$semibold' }}
+          css={{ 
+            fontSize: '$lg', 
+            fontWeight: '$semibold',
+            background: 'linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%)',
+            color: 'white',
+            '&:hover': {
+              background: 'linear-gradient(135deg, #fcd34d 0%, #fbbf24 100%)',
+            }
+          }}
         >
           Nueva Bonificación
         </Button>
@@ -163,92 +176,96 @@ export const BonificacionesContent = () => {
       <Flex css={{ gap: '$3', flexWrap: 'nowrap', '@sm': { flexWrap: 'wrap' } }}>
         <Card
           css={{
-            bgColor: '#F5F5F0',
-            borderColor: '#5A5A5A',
-          
+            background: 'linear-gradient(135deg, #f59e0b 0%, #d97706 100%)',
             flex: 1,
             minWidth: '150px',
-            p: '$3',
-            transition: 'all 0.2s ease',
+            p: '$6',
+            borderRadius: '$xl',
+            border: 'none',
+            boxShadow: '0 10px 30px rgba(245, 158, 11, 0.25)',
+            transition: 'all 0.3s ease',
             '&:hover': {
-              transform: 'translateY(-2px)',
-              boxShadow: '0 4px 20px rgba(0,0,0,0.1)',
+              transform: 'translateY(-4px)',
+              boxShadow: '0 15px 40px rgba(245, 158, 11, 0.35)',
             }
           }}
         >
-          <Text weight="medium" size="$xs" color="#666" css={{ mb: '$2' }}>
-            BONIFICACIONES VENCIDAS
+          <Text weight="medium" size="$xs" color="rgba(255, 255, 255, 0.8)" css={{ mb: '$2' }}>
+            VENCIDAS
           </Text>
-          <Text h3 weight="bold" color="#5A5A5A" size="$2xl">
+          <Text h3 weight="bold" color="white" size="$2xl">
             {estadisticasAdicionales.vencidas}
           </Text>
         </Card>
 
         <Card
           css={{
-            bgColor: '#D4F4DD',
-            borderColor: '#F5A623',
-        
+            background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)',
             flex: 1,
             minWidth: '150px',
-            p: '$3',
-            transition: 'all 0.2s ease',
+            p: '$6',
+            borderRadius: '$xl',
+            border: 'none',
+            boxShadow: '0 10px 30px rgba(16, 185, 129, 0.25)',
+            transition: 'all 0.3s ease',
             '&:hover': {
-              transform: 'translateY(-2px)',
-              boxShadow: '0 4px 20px rgba(0,0,0,0.1)',
+              transform: 'translateY(-4px)',
+              boxShadow: '0 15px 40px rgba(16, 185, 129, 0.35)',
             }
           }}
         >
-          <Text weight="medium" size="$xs" color="#666" css={{ mb: '$2' }}>
+          <Text weight="medium" size="$xs" color="rgba(255, 255, 255, 0.8)" css={{ mb: '$2' }}>
             PRÓXIMAS A VENCER (7 DÍAS)
           </Text>
-          <Text h3 weight="bold" color="#F5A623" size="$2xl">
+          <Text h3 weight="bold" color="white" size="$2xl">
             {estadisticasAdicionales.proximasAVencer}
           </Text>
         </Card>
 
         <Card
           css={{
-            bgColor: '$purple50',
-            borderColor: '$purple200',
-        
+            background: 'linear-gradient(135deg, #3b82f6 0%, #1e40af 100%)',
             flex: 1,
             minWidth: '150px',
-            p: '$3',
-            transition: 'all 0.2s ease',
+            p: '$6',
+            borderRadius: '$xl',
+            border: 'none',
+            boxShadow: '0 10px 30px rgba(59, 130, 246, 0.25)',
+            transition: 'all 0.3s ease',
             '&:hover': {
-              transform: 'translateY(-2px)',
-              boxShadow: '0 4px 20px rgba(0,0,0,0.1)',
+              transform: 'translateY(-4px)',
+              boxShadow: '0 15px 40px rgba(59, 130, 246, 0.35)',
             }
           }}
         >
-          <Text weight="medium" size="$xs" color="#666" css={{ mb: '$2' }}>
+          <Text weight="medium" size="$xs" color="rgba(255, 255, 255, 0.8)" css={{ mb: '$2' }}>
             MONTO TOTAL EN BONIFICACIONES
           </Text>
-          <Text h3 weight="bold" color="#8B5CF6" size="$2xl">
+          <Text h3 weight="bold" color="white" size="$2xl">
             {estadisticasAdicionales.montoTotal}
           </Text>
         </Card>
 
         <Card
           css={{
-            bgColor: '$cyan50',
-            borderColor: '$cyan200',
-        
+            background: 'linear-gradient(135deg, #06b6d4 0%, #0891b2 100%)',
             flex: 1,
             minWidth: '150px',
-            p: '$3',
-            transition: 'all 0.2s ease',
+            p: '$6',
+            borderRadius: '$xl',
+            border: 'none',
+            boxShadow: '0 10px 30px rgba(6, 182, 212, 0.25)',
+            transition: 'all 0.3s ease',
             '&:hover': {
-              transform: 'translateY(-2px)',
-              boxShadow: '0 4px 20px rgba(0,0,0,0.1)',
+              transform: 'translateY(-4px)',
+              boxShadow: '0 15px 40px rgba(6, 182, 212, 0.35)',
             }
           }}
         >
-          <Text weight="medium" size="$xs" color="#666" css={{ mb: '$2' }}>
+          <Text weight="medium" size="$xs" color="rgba(255, 255, 255, 0.8)" css={{ mb: '$2' }}>
             PRODUCTOS CON BONIFICACIONES
           </Text>
-          <Text h3 weight="bold" color="#00B8D4" size="$2xl">
+          <Text h3 weight="bold" color="white" size="$2xl">
             {estadisticasAdicionales.productosUnicos}
           </Text>
         </Card>

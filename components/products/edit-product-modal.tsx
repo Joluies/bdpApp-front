@@ -31,20 +31,15 @@ export const EditProductModal: React.FC<EditProductModalProps> = ({
       presentation: '',
       precio_unitario: '',
       precio_mayorista: '',
-      stockPaquete: '',
-      stockUnid: '15',
       image: '',
-      category: 'Gaseosas',
-      status: 'Disponible' as 'Disponible' | 'Agotado' | 'Descontinuado'
+      category: 'Gaseosas'
    });
 
    const [imageFile, setImageFile] = useState<File | null>(null);
    const [imagePreview, setImagePreview] = useState<string>('');
    const [selectedCategory, setSelectedCategory] = useState(new Set(['Gaseosas']));
-   const [selectedStatus, setSelectedStatus] = useState(new Set(['Disponible']));
 
    const categories = ['Gaseosas', 'Jugos', 'Aguas', 'Energizantes', 'Otros'];
-   const statusOptions = ['Disponible', 'Agotado', 'Descontinuado'];
 
    // Cargar datos del producto cuando se abre el modal
    useEffect(() => {
@@ -55,24 +50,16 @@ export const EditProductModal: React.FC<EditProductModalProps> = ({
             presentation: product.presentation,
             precio_unitario: product.precio_unitario.toString(),
             precio_mayorista: product.precio_mayorista.toString(),
-            stockPaquete: product.stockPaquete ? product.stockPaquete.toString() : '',
-            stockUnid: product.stockUnid ? product.stockUnid.toString() : '15',
             image: product.image,
-            category: product.category,
-            status: product.status
+            category: product.category
          });
          setSelectedCategory(new Set([product.category]));
-         setSelectedStatus(new Set([product.status]));
          setImagePreview(product.image);
       }
    }, [product]);
 
    const handleCategoryChange = (keys: any) => {
       setSelectedCategory(new Set(keys));
-   };
-
-   const handleStatusChange = (keys: any) => {
-      setSelectedStatus(new Set(keys));
    };
 
    const handleInputChange = (field: string) => (e: React.ChangeEvent<FormElement>) => {
@@ -106,7 +93,7 @@ export const EditProductModal: React.FC<EditProductModalProps> = ({
 
       // Validar campos requeridos
       if (!formData.name || !formData.presentation || 
-          !formData.precio_unitario || !formData.precio_mayorista || !formData.stockPaquete) {
+          !formData.precio_unitario || !formData.precio_mayorista) {
          alert('Por favor, completa todos los campos requeridos');
          return;
       }
@@ -120,12 +107,8 @@ export const EditProductModal: React.FC<EditProductModalProps> = ({
             presentation: formData.presentation,
             precio_unitario: parseFloat(formData.precio_unitario),
             precio_mayorista: parseFloat(formData.precio_mayorista),
-            stockPaquete: parseInt(formData.stockPaquete),
-            stockUnid: parseInt(formData.stockUnid),
-            stockTotal: parseInt(formData.stockPaquete) * parseInt(formData.stockUnid),
             image: formData.image || '/img/productos/default.jpg',
             category: Array.from(selectedCategory)[0] as string,
-            status: Array.from(selectedStatus)[0] as 'Disponible' | 'Agotado' | 'Descontinuado',
             imageFile: imageFile // Pasar el archivo de imagen
          };
 
@@ -232,49 +215,8 @@ export const EditProductModal: React.FC<EditProductModalProps> = ({
                   />
                </Flex>
                
-               {/* Stock */}
-               <Flex css={{gap: '$4', '@sm': {flexDirection: 'column'}}}>
-                  <Input
-                     clearable
-                     bordered
-                     fullWidth
-                     color="success"
-                     size="lg"
-                     type="number"
-                     placeholder="0"
-                     label="Stock de Paquetes*"
-                     value={formData.stockPaquete}
-                     onChange={handleInputChange('stockPaquete')}
-                  />
-                  
-                  <Dropdown>
-                     <Dropdown.Button flat color="success">
-                        {formData.stockUnid} unid/paquete
-                     </Dropdown.Button>
-                     <Dropdown.Menu
-                        aria-label="Unidades por paquete"
-                        color="success"
-                        disallowEmptySelection
-                        selectionMode="single"
-                        selectedKeys={new Set([formData.stockUnid])}
-                        onSelectionChange={(keys) => {
-                           const value = Array.from(keys)[0] as string;
-                           setFormData(prev => ({
-                              ...prev,
-                              stockUnid: value
-                           }));
-                        }}
-                     >
-                        <Dropdown.Item key="4">4 unidades</Dropdown.Item>
-                        <Dropdown.Item key="6">6 unidades</Dropdown.Item>
-                        <Dropdown.Item key="15">15 unidades</Dropdown.Item>
-                     </Dropdown.Menu>
-                  </Dropdown>
-               </Flex>
-               
-               {/* Selectores */}
-               <Flex css={{gap: '$4', '@sm': {flexDirection: 'column'}}}>
-                  <Dropdown>
+               {/* Categoría */}
+               <Dropdown>
                      <Dropdown.Button flat color="success">
                         {Array.from(selectedCategory)[0] || 'Seleccionar Categoría'}
                      </Dropdown.Button>
@@ -291,25 +233,6 @@ export const EditProductModal: React.FC<EditProductModalProps> = ({
                         ))}
                      </Dropdown.Menu>
                   </Dropdown>
-                  
-                  <Dropdown>
-                     <Dropdown.Button flat color="success">
-                        {Array.from(selectedStatus)[0] || 'Seleccionar Estado'}
-                     </Dropdown.Button>
-                     <Dropdown.Menu
-                        aria-label="Estados"
-                        color="success"
-                        disallowEmptySelection
-                        selectionMode="single"
-                        selectedKeys={selectedStatus}
-                        onSelectionChange={handleStatusChange}
-                     >
-                        {statusOptions.map((status) => (
-                           <Dropdown.Item key={status}>{status}</Dropdown.Item>
-                        ))}
-                     </Dropdown.Menu>
-                  </Dropdown>
-               </Flex>
                
                {/* Upload de imagen */}
                <Flex direction="column" css={{gap: '$3'}}>
@@ -402,7 +325,7 @@ export const EditProductModal: React.FC<EditProductModalProps> = ({
                }}
                onClick={handleSubmit}
                disabled={!formData.name || !formData.presentation || 
-                        !formData.precio_unitario || !formData.precio_mayorista || !formData.stockPaquete || isLoading}
+                        !formData.precio_unitario || !formData.precio_mayorista || isLoading}
             >
                {isLoading ? 'Actualizando...' : 'Actualizar Producto'}
             </Button>

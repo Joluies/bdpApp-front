@@ -90,13 +90,18 @@ export const ClientesContent = () => {
          justify={'center'}
          direction={'column'}
       >
-         <Flex justify="between" align="center">
+         <Flex justify="between" align="center" css={{
+            background: 'linear-gradient(135deg, #06b6d4 0%, #0891b2 100%)',
+            padding: '$6',
+            borderRadius: '$xl',
+            marginBottom: '$4',
+         }}>
             <Flex direction="column">
-               <Text h3 css={{ color: '#034F32', fontWeight: 'bold' }}>
-                  Gestión de Clientes
+               <Text h3 css={{ color: 'white', fontWeight: 'bold' }}>
+                  👥 Gestión de Clientes
                </Text>
                {apiConnected === false && (
-                  <Text css={{ fontSize: '$xs', color: '$warning', mt: '$1' }}>
+                  <Text css={{ fontSize: '$xs', color: 'rgba(255, 255, 255, 0.8)', mt: '$1' }}>
                      💡 Tip: Haz doble clic en el indicador de API para ejecutar diagnósticos
                   </Text>
                )}
@@ -120,16 +125,28 @@ export const ClientesContent = () => {
          {/* Tarjetas de estadísticas */}
          <Grid.Container gap={2} justify="center">
             <Grid xs={6} md={3}>
-               <Card css={{ backgroundColor: '#F1F1E9', p: '$6', w: '100%' }}>
-                  <Card.Body>
+               <Card css={{ 
+                  background: 'linear-gradient(135deg, #3b82f6 0%, #1e40af 100%)',
+                  p: '$8', 
+                  w: '100%',
+                  borderRadius: '$xl',
+                  border: 'none',
+                  boxShadow: '0 10px 30px rgba(59, 130, 246, 0.25)',
+                  transition: 'all 0.3s ease',
+                  '&:hover': {
+                     transform: 'translateY(-4px)',
+                     boxShadow: '0 15px 40px rgba(59, 130, 246, 0.35)'
+                  }
+               }}>
+                  <Card.Body css={{ padding: 0 }}>
                      {loadingStats ? (
                         <Loading size="lg" color="success" />
                      ) : (
                         <>
-                           <Text css={{ color: '#034F32', fontSize: '2rem', fontWeight: 'bold' }}>
+                           <Text css={{ color: 'white', fontSize: '2rem', fontWeight: 'bold' }}>
                               {stats.totalClientes}
                            </Text>
-                           <Text css={{ color: '#034F32', fontSize: '0.9rem' }}>
+                           <Text css={{ color: 'rgba(255, 255, 255, 0.8)', fontSize: '0.9rem' }}>
                               Total Clientes
                            </Text>
                         </>
@@ -138,16 +155,28 @@ export const ClientesContent = () => {
                </Card>
             </Grid>
             <Grid xs={6} md={3}>
-               <Card css={{ backgroundColor: '#C8ECC9', p: '$6', w: '100%' }}>
-                  <Card.Body>
+               <Card css={{ 
+                  background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)',
+                  p: '$8', 
+                  w: '100%',
+                  borderRadius: '$xl',
+                  border: 'none',
+                  boxShadow: '0 10px 30px rgba(16, 185, 129, 0.25)',
+                  transition: 'all 0.3s ease',
+                  '&:hover': {
+                     transform: 'translateY(-4px)',
+                     boxShadow: '0 15px 40px rgba(16, 185, 129, 0.35)'
+                  }
+               }}>
+                  <Card.Body css={{ padding: 0 }}>
                      {loadingStats ? (
                         <Loading size="lg" color="success" />
                      ) : (
                         <>
-                           <Text css={{ color: '#034F32', fontSize: '2rem', fontWeight: 'bold' }}>
+                           <Text css={{ color: 'white', fontSize: '2rem', fontWeight: 'bold' }}>
                               {stats.clientesMayoristas}
                            </Text>
-                           <Text css={{ color: '#034F32', fontSize: '0.9rem' }}>
+                           <Text css={{ color: 'rgba(255, 255, 255, 0.8)', fontSize: '0.9rem' }}>
                               Mayoristas
                            </Text>
                         </>
@@ -156,16 +185,28 @@ export const ClientesContent = () => {
                </Card>
             </Grid>
             <Grid xs={6} md={3}>
-               <Card css={{ backgroundColor: '#F8D7DA', p: '$6', w: '100%' }}>
-                  <Card.Body>
+               <Card css={{ 
+                  background: 'linear-gradient(135deg, #f59e0b 0%, #d97706 100%)',
+                  p: '$8', 
+                  w: '100%',
+                  borderRadius: '$xl',
+                  border: 'none',
+                  boxShadow: '0 10px 30px rgba(245, 158, 11, 0.25)',
+                  transition: 'all 0.3s ease',
+                  '&:hover': {
+                     transform: 'translateY(-4px)',
+                     boxShadow: '0 15px 40px rgba(245, 158, 11, 0.35)'
+                  }
+               }}>
+                  <Card.Body css={{ padding: 0 }}>
                      {loadingStats ? (
                         <Loading size="lg" color="success" />
                      ) : (
                         <>
-                           <Text css={{ color: '#034F32', fontSize: '2rem', fontWeight: 'bold' }}>
+                           <Text css={{ color: 'white', fontSize: '2rem', fontWeight: 'bold' }}>
                               {stats.clientesMinoristas}
                            </Text>
-                           <Text css={{ color: '#034F32', fontSize: '0.9rem' }}>
+                           <Text css={{ color: 'rgba(255, 255, 255, 0.8)', fontSize: '0.9rem' }}>
                               Minoristas
                            </Text>
                         </>
@@ -174,8 +215,20 @@ export const ClientesContent = () => {
                </Card>
             </Grid>
             <Grid xs={6} md={3}>
-               <Card css={{ backgroundColor: '#034F32', p: '$6', w: '100%' }}>
-                  <Card.Body>
+               <Card css={{ 
+                  background: 'linear-gradient(135deg, #06b6d4 0%, #0891b2 100%)',
+                  p: '$8', 
+                  w: '100%',
+                  borderRadius: '$xl',
+                  border: 'none',
+                  boxShadow: '0 10px 30px rgba(6, 182, 212, 0.25)',
+                  transition: 'all 0.3s ease',
+                  '&:hover': {
+                     transform: 'translateY(-4px)',
+                     boxShadow: '0 15px 40px rgba(6, 182, 212, 0.35)'
+                  }
+               }}>
+                  <Card.Body css={{ padding: 0 }}>
                      {loadingStats ? (
                         <Loading size="lg" color="white" />
                      ) : (
@@ -183,7 +236,7 @@ export const ClientesContent = () => {
                            <Text css={{ color: 'white', fontSize: '2rem', fontWeight: 'bold' }}>
                               {stats.clientesActivos}
                            </Text>
-                           <Text css={{ color: 'white', fontSize: '0.9rem' }}>
+                           <Text css={{ color: 'rgba(255, 255, 255, 0.8)', fontSize: '0.9rem' }}>
                               Activos
                            </Text>
                         </>

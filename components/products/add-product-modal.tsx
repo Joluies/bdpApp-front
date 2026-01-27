@@ -30,11 +30,8 @@ export const AddProductModal: React.FC<AddProductModalProps> = ({
       presentation: '',
       precio_unitario: '',
       precio_mayorista: '',
-      stockPaquete: '',
-      stockUnid: '15',
       image: '',
-      category: '',
-      status: 'Disponible' as 'Disponible' | 'Agotado' | 'Descontinuado'
+      category: ''
    });
 
    const [imageFile, setImageFile] = useState<File | null>(null);
@@ -42,10 +39,8 @@ export const AddProductModal: React.FC<AddProductModalProps> = ({
    const [isLoading, setIsLoading] = useState(false);
 
    const [selectedCategory, setSelectedCategory] = useState(new Set(['Gaseosas']));
-   const [selectedStatus, setSelectedStatus] = useState(new Set(['Disponible']));
 
    const categories = ['Gaseosas', 'Licores', 'Aguas', 'Energizantes', 'Otros'];
-   const statusOptions = ['Disponible', 'Agotado', 'Descontinuado'];
 
    const resetForm = () => {
       setFormData({
@@ -54,16 +49,12 @@ export const AddProductModal: React.FC<AddProductModalProps> = ({
          presentation: '',
          precio_unitario: '',
          precio_mayorista: '',
-         stockPaquete: '',
-         stockUnid: '15',
          image: '',
-         category: 'Gaseosas',
-         status: 'Disponible'
+         category: 'Gaseosas'
       });
       setImageFile(null);
       setImagePreview('');
       setSelectedCategory(new Set(['Gaseosas']));
-      setSelectedStatus(new Set(['Disponible']));
       setIsLoading(false);
       
       // Limpiar el input de archivo
@@ -73,10 +64,6 @@ export const AddProductModal: React.FC<AddProductModalProps> = ({
 
    const handleCategoryChange = (keys: any) => {
       setSelectedCategory(new Set(keys));
-   };
-
-   const handleStatusChange = (keys: any) => {
-      setSelectedStatus(new Set(keys));
    };
 
    const handleInputChange = (field: string) => (e: React.ChangeEvent<FormElement>) => {
@@ -123,7 +110,7 @@ export const AddProductModal: React.FC<AddProductModalProps> = ({
       
       // Validar campos requeridos
       if (!formData.name || !formData.presentation || 
-          !formData.precio_unitario || !formData.precio_mayorista || !formData.stockPaquete) {
+          !formData.precio_unitario || !formData.precio_mayorista) {
          console.log('❌ Validación fallida - campos requeridos faltantes');
          alert('Por favor, completa todos los campos requeridos');
          return;
@@ -138,9 +125,7 @@ export const AddProductModal: React.FC<AddProductModalProps> = ({
             descripcion: formData.description || 'Sin descripción',
             presentacion: formData.presentation,
             precioUnitario: parseFloat(formData.precio_unitario),
-            precioMayorista: parseFloat(formData.precio_mayorista),
-            stockPaquete: parseInt(formData.stockPaquete),
-            stockUnid: parseInt(formData.stockUnid)
+            precioMayorista: parseFloat(formData.precio_mayorista)
          };
 
          console.log('📤 Enviando datos a la API...', apiData);
@@ -156,12 +141,12 @@ export const AddProductModal: React.FC<AddProductModalProps> = ({
             presentation: formData.presentation,
             precio_unitario: parseFloat(formData.precio_unitario),
             precio_mayorista: parseFloat(formData.precio_mayorista),
-            stockPaquete: parseInt(formData.stockPaquete),
-            stockUnid: parseInt(formData.stockUnid),
-            stockTotal: parseInt(formData.stockPaquete) * parseInt(formData.stockUnid),
+            stockPaquete: 0,
+            stockUnid: 0,
+            stockTotal: 0,
             image: imagePreview || '/images/products/default.jpg',
             category: Array.from(selectedCategory)[0] as string,
-            status: Array.from(selectedStatus)[0] as 'Disponible' | 'Agotado' | 'Descontinuado'
+            status: 'Disponible'
          };
 
          console.log('📦 Producto procesado para tabla local:', newProduct);
@@ -277,49 +262,8 @@ export const AddProductModal: React.FC<AddProductModalProps> = ({
                   />
                </Flex>
                
-               {/* Stock */}
-               <Flex css={{ gap: '$4' }}>
-                  <Input
-                     clearable
-                     bordered
-                     fullWidth
-                     color="success"
-                     size="lg"
-                     type="number"
-                     placeholder="0"
-                     label="Stock de Paquetes*"
-                     value={formData.stockPaquete}
-                     onChange={handleInputChange('stockPaquete')}
-                  />
-                  
-                  <Dropdown>
-                     <Dropdown.Button flat color="success">
-                        {formData.stockUnid} unid/paquete
-                     </Dropdown.Button>
-                     <Dropdown.Menu
-                        aria-label="Unidades por paquete"
-                        color="success"
-                        disallowEmptySelection
-                        selectionMode="single"
-                        selectedKeys={new Set([formData.stockUnid])}
-                        onSelectionChange={(keys) => {
-                           const value = Array.from(keys)[0] as string;
-                           setFormData(prev => ({
-                              ...prev,
-                              stockUnid: value
-                           }));
-                        }}
-                     >
-                        <Dropdown.Item key="4">4 unidades</Dropdown.Item>
-                        <Dropdown.Item key="6">6 unidades</Dropdown.Item>
-                        <Dropdown.Item key="15">15 unidades</Dropdown.Item>
-                     </Dropdown.Menu>
-                  </Dropdown>
-               </Flex>
-               
-               {/* Categoría y Estado */}
-               <Flex css={{ gap: '$4' }}>
-                  <Dropdown>
+               {/* Categoría */}
+               <Dropdown>
                      <Dropdown.Button flat color="success">
                         {Array.from(selectedCategory)[0] || 'Seleccionar Categoría'}
                      </Dropdown.Button>
@@ -336,25 +280,6 @@ export const AddProductModal: React.FC<AddProductModalProps> = ({
                         ))}
                      </Dropdown.Menu>
                   </Dropdown>
-                  
-                  <Dropdown>
-                     <Dropdown.Button flat color="success">
-                        {Array.from(selectedStatus)[0] || 'Seleccionar Estado'}
-                     </Dropdown.Button>
-                     <Dropdown.Menu
-                        aria-label="Estados"
-                        color="success"
-                        disallowEmptySelection
-                        selectionMode="single"
-                        selectedKeys={selectedStatus}
-                        onSelectionChange={handleStatusChange}
-                     >
-                        {statusOptions.map((status) => (
-                           <Dropdown.Item key={status}>{status}</Dropdown.Item>
-                        ))}
-                     </Dropdown.Menu>
-                  </Dropdown>
-               </Flex>
                
                {/* Upload de imagen */}
                <Flex direction="column" css={{gap: '$3'}}>
@@ -450,7 +375,7 @@ export const AddProductModal: React.FC<AddProductModalProps> = ({
                }}
                onClick={handleSubmit}
                disabled={isLoading || !formData.name || !formData.presentation || 
-                        !formData.precio_unitario || !formData.precio_mayorista || !formData.stockPaquete}
+                        !formData.precio_unitario || !formData.precio_mayorista}
             >
                {isLoading ? '🔄 Creando...' : 'Agregar Producto'}
             </Button>

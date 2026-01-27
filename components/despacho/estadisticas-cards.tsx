@@ -20,21 +20,29 @@ export const EstadisticasDespachoCards = ({ estadisticas }: Props) => {
       {/* Estadísticas de Camiones */}
       <Grid xs={12} sm={6} md={3}>
         <Card css={{ 
-          p: '$6', 
+          p: '$8', 
           mw: '400px',
-          background: 'linear-gradient(135deg, #034F32 0%, #5CAC4C 100%)',
-          color: 'white'
+          background: 'linear-gradient(135deg, #f59e0b 0%, #d97706 100%)',
+          color: 'white',
+          borderRadius: '$xl',
+          border: 'none',
+          boxShadow: '0 10px 30px rgba(245, 158, 11, 0.25)',
+          transition: 'all 0.3s ease',
+          '&:hover': {
+            transform: 'translateY(-4px)',
+            boxShadow: '0 15px 40px rgba(245, 158, 11, 0.35)'
+          }
         }}>
           <Flex direction="column" css={{ gap: '$2' }}>
             <Text h4 color="white" css={{ m: 0 }}>
-              Camiones
+              🚗 Camiones
             </Text>
             <Text h2 color="white" css={{ m: 0, fontWeight: 'bold' }}>
               {estadisticas.totalCamiones}
             </Text>
             <Flex css={{ gap: '$4', mt: '$2' }}>
               <Flex direction="column" css={{ alignItems: 'center' }}>
-                <Text size="$sm" color="white" css={{ opacity: 0.8 }}>
+                <Text size="$sm" color="white" css={{ opacity: 0.9 }}>
                   En Ruta
                 </Text>
                 <Text weight="bold" color="white">
@@ -42,7 +50,7 @@ export const EstadisticasDespachoCards = ({ estadisticas }: Props) => {
                 </Text>
               </Flex>
               <Flex direction="column" css={{ alignItems: 'center' }}>
-                <Text size="$sm" color="white" css={{ opacity: 0.8 }}>
+                <Text size="$sm" color="white" css={{ opacity: 0.9 }}>
                   Disponibles
                 </Text>
                 <Text weight="bold" color="white">
@@ -57,24 +65,32 @@ export const EstadisticasDespachoCards = ({ estadisticas }: Props) => {
       {/* Estadísticas de Rutas */}
       <Grid xs={12} sm={6} md={3}>
         <Card css={{ 
-          p: '$6', 
+          p: '$8', 
           mw: '400px',
-          background: 'linear-gradient(135deg, #5CAC4C 0%, #C8ECC9 100%)',
-          color: '#034F32'
+          background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)',
+          color: 'white',
+          borderRadius: '$xl',
+          border: 'none',
+          boxShadow: '0 10px 30px rgba(16, 185, 129, 0.25)',
+          transition: 'all 0.3s ease',
+          '&:hover': {
+            transform: 'translateY(-4px)',
+            boxShadow: '0 15px 40px rgba(16, 185, 129, 0.35)'
+          }
         }}>
           <Flex direction="column" css={{ gap: '$2' }}>
-            <Text h4 css={{ m: 0, color: '#034F32' }}>
-              Rutas
+            <Text h4 css={{ m: 0, color: 'white' }}>
+              🗺️ Rutas
             </Text>
-            <Text h2 css={{ m: 0, fontWeight: 'bold', color: '#034F32' }}>
+            <Text h2 css={{ m: 0, fontWeight: 'bold', color: 'white' }}>
               {estadisticas.totalRutas}
             </Text>
             <Flex css={{ gap: '$4', mt: '$2' }}>
               <Flex direction="column" css={{ alignItems: 'center' }}>
-                <Text size="$sm" css={{ opacity: 0.7, color: '#034F32' }}>
+                <Text size="$sm" css={{ opacity: 0.9, color: 'white' }}>
                   Activas
                 </Text>
-                <Text weight="bold" css={{ color: '#034F32' }}>
+                <Text weight="bold" css={{ color: 'white' }}>
                   {estadisticas.rutasActivas}
                 </Text>
               </Flex>

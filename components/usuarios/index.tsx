@@ -84,23 +84,26 @@ export const UsuariosContent = () => {
          {/* Header */}
          <Flex justify="between" align="center">
             <Flex direction="column">
-               <Text h3 css={{ color: '#034F32', fontWeight: 'bold' }}>
-                  Gestión de Usuarios
+               <Text h3 css={{ color: '#1e40af', fontWeight: 'bold' }}>
+                  👥 Gestión de Usuarios
                </Text>
-               <Text css={{ fontSize: '$sm', color: '$accents7', mt: '$1' }}>
+               <Text css={{ fontSize: '$sm', color: '#6b7280', mt: '$1' }}>
                   Administración de usuarios del sistema
                </Text>
             </Flex>
             <Button
                auto
-               color="success"
-               onClick={handleAddUsuario}
                css={{
-                  background: '#034F32',
+                  background: 'linear-gradient(135deg, #1e40af 0%, #0ea5e9 100%)',
+                  color: 'white',
+                  fontWeight: 'bold',
+                  boxShadow: '0 4px 15px rgba(30, 64, 175, 0.3)',
                   '&:hover': {
-                     background: '#023320',
+                     boxShadow: '0 6px 20px rgba(30, 64, 175, 0.4)',
+                     transform: 'translateY(-2px)',
                   },
                }}
+               onClick={handleAddUsuario}
             >
                + Agregar Usuario
             </Button>
@@ -112,14 +115,17 @@ export const UsuariosContent = () => {
          <Grid.Container gap={2} css={{ mb: '$8' }}>
             <Grid xs={12} sm={3}>
                <Card css={{ 
-                  background: '#F5F5F0',
-                  padding: '$8'
+                  background: 'linear-gradient(135deg, #3b82f6 0%, #1e40af 100%)',
+                  padding: '$8',
+                  borderRadius: '$xl',
+                  boxShadow: '0 10px 30px rgba(30, 64, 175, 0.2)',
+                  border: 'none',
                }}>
                   <Flex direction="column">
                      <Text 
                         css={{ 
                            fontSize: '$xs', 
-                           color: '#5A5A5A',
+                           color: 'rgba(255,255,255,0.8)',
                            fontWeight: '600',
                            textTransform: 'uppercase',
                            letterSpacing: '0.5px'
@@ -134,7 +140,7 @@ export const UsuariosContent = () => {
                         <Text 
                            h2 
                            css={{ 
-                              color: '#2C2C2C',
+                              color: 'white',
                               fontWeight: 'bold',
                               margin: 0
                            }}
@@ -148,14 +154,17 @@ export const UsuariosContent = () => {
 
             <Grid xs={12} sm={3}>
                <Card css={{ 
-                  background: '#D4F4DD',
-                  padding: '$8'
+                  background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)',
+                  padding: '$8',
+                  borderRadius: '$xl',
+                  boxShadow: '0 10px 30px rgba(5, 150, 105, 0.2)',
+                  border: 'none',
                }}>
                   <Flex direction="column">
                      <Text 
                         css={{ 
                            fontSize: '$xs', 
-                           color: '#2A6B3F',
+                           color: 'rgba(255,255,255,0.8)',
                            fontWeight: '600',
                            textTransform: 'uppercase',
                            letterSpacing: '0.5px'
@@ -170,7 +179,7 @@ export const UsuariosContent = () => {
                         <Text 
                            h2 
                            css={{ 
-                              color: '#1A4D2E',
+                              color: 'white',
                               fontWeight: 'bold',
                               margin: 0
                            }}
@@ -184,14 +193,17 @@ export const UsuariosContent = () => {
 
             <Grid xs={12} sm={3}>
                <Card css={{ 
-                  background: '#FFE4E8',
-                  padding: '$8'
+                  background: 'linear-gradient(135deg, #f59e0b 0%, #d97706 100%)',
+                  padding: '$8',
+                  borderRadius: '$xl',
+                  boxShadow: '0 10px 30px rgba(217, 119, 6, 0.2)',
+                  border: 'none',
                }}>
                   <Flex direction="column">
                      <Text 
                         css={{ 
                            fontSize: '$xs', 
-                           color: '#8B4A5A',
+                           color: 'rgba(255,255,255,0.8)',
                            fontWeight: '600',
                            textTransform: 'uppercase',
                            letterSpacing: '0.5px'
@@ -206,7 +218,7 @@ export const UsuariosContent = () => {
                         <Text 
                            h2 
                            css={{ 
-                              color: '#6B2C3A',
+                              color: 'white',
                               fontWeight: 'bold',
                               margin: 0
                            }}
@@ -220,8 +232,11 @@ export const UsuariosContent = () => {
 
             <Grid xs={12} sm={3}>
                <Card css={{ 
-                  background: '#034F32',
-                  padding: '$8'
+                  background: 'linear-gradient(135deg, #06b6d4 0%, #0891b2 100%)',
+                  padding: '$8',
+                  borderRadius: '$xl',
+                  boxShadow: '0 10px 30px rgba(6, 182, 212, 0.2)',
+                  border: 'none',
                }}>
                   <Flex direction="column">
                      <Text 

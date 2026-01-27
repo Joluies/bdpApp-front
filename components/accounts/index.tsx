@@ -46,7 +46,15 @@ export const Accounts = () => {
             </Crumb>
          </Breadcrumbs>
 
-         <Text h3>All Accounts</Text>
+         <Text h3 css={{
+            background: 'linear-gradient(135deg, #06b6d4 0%, #0891b2 100%)',
+            color: 'white',
+            padding: '$6',
+            borderRadius: '$xl',
+            marginBottom: '$4'
+         }}>
+            👤 All Accounts
+         </Text>
          <Flex
             css={{gap: '$8'}}
             align={'center'}

@@ -9,19 +9,28 @@ export const CardBalance3 = () => {
       <Card
          css={{
             mw: '375px',
-            bg: '$green600',
+            background: 'linear-gradient(135deg, #059669 0%, #10b981 100%)',
             borderRadius: '$xl',
             px: '$6',
+            boxShadow: '0 10px 30px rgba(5, 150, 105, 0.3)',
+            border: 'none',
+            position: 'relative',
+            overflow: 'hidden',
+            '&:hover': {
+               boxShadow: '0 15px 40px rgba(5, 150, 105, 0.4)',
+               transform: 'translateY(-4px)',
+            },
+            transition: 'all 0.3s ease',
          }}
       >
          <Card.Body css={{py: '$10'}}>
             <Flex css={{gap: '$5'}}>
                <Community />
                <Flex direction={'column'}>
-                  <Text span css={{color: 'white'}}>
+                  <Text span css={{color: 'white', fontWeight: '600'}}>
                      Balance Insurance
                   </Text>
-                  <Text span css={{color: 'white'}} size={'$xs'}>
+                  <Text span css={{color: 'rgba(255,255,255,0.8)'}} size={'$xs'}>
                      1311 Cars
                   </Text>
                </Flex>
@@ -30,12 +39,11 @@ export const CardBalance3 = () => {
                <Text
                   span
                   size={'$xl'}
-                  css={{color: 'white'}}
-                  weight={'semibold'}
+                  css={{color: 'white', fontWeight: 'bold'}}
                >
                   $3,910
                </Text>
-               <Text span css={{color: '$red600'}} size={'$xs'}>
+               <Text span css={{color: '#4ade80', fontWeight: 'semibold'}} size={'$xs'}>
                   + 4.5%
                </Text>
             </Flex>
@@ -44,12 +52,11 @@ export const CardBalance3 = () => {
                   <Text
                      span
                      size={'$xs'}
-                     css={{color: '$red600'}}
-                     weight={'semibold'}
+                     css={{color: '#4ade80', fontWeight: 'semibold'}}
                   >
                      {'↓'}
                   </Text>
-                  <Text span size={'$xs'} css={{color: '$white'}}>
+                  <Text span size={'$xs'} css={{color: 'rgba(255,255,255,0.9)'}}>
                      100,930 USD
                   </Text>
                </Box>
@@ -57,7 +64,7 @@ export const CardBalance3 = () => {
                   <Text
                      span
                      size={'$xs'}
-                     css={{color: '$red600'}}
+                     css={{color: '#4ade80', fontWeight: 'semibold'}}
                      weight={'semibold'}
                   >
                      {'↑'}

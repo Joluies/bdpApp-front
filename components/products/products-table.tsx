@@ -185,37 +185,6 @@ export const ProductsTable = ({products, onUpdateProduct, onDeleteProduct}: Prop
                   S/ {product.precio_mayorista.toFixed(2)}
                </Text>
             );
-         case 'stock':
-            return (
-               <Badge
-                  color={product.stockTotal > 50 ? "success" : product.stockTotal > 0 ? "warning" : "error"}
-                  variant="flat"
-                  css={{
-                     backgroundColor: product.stockTotal > 50 ? '#C8ECC9' : 
-                                    product.stockTotal > 0 ? '#FFF3CD' : '#F8D7DA',
-                     color: product.stockTotal > 50 ? '#034F32' : 
-                           product.stockTotal > 0 ? '#856404' : '#721C24'
-                  }}
-               >
-                  {product.stockPaquete} pqtes × {product.stockUnid} = {product.stockTotal} unid.
-               </Badge>
-            );
-         case 'status':
-            return (
-               <Badge
-                  color={product.status === 'Disponible' ? 'success' : 
-                        product.status === 'Agotado' ? 'error' : 'warning'}
-                  variant="flat"
-                  css={{
-                     backgroundColor: product.status === 'Disponible' ? '#C8ECC9' : 
-                                    product.status === 'Agotado' ? '#F8D7DA' : '#FFF3CD',
-                     color: product.status === 'Disponible' ? '#034F32' : 
-                           product.status === 'Agotado' ? '#721C24' : '#856404'
-                  }}
-               >
-                  {product.status}
-               </Badge>
-            );
          case 'actions':
             return (
                <Flex css={{gap: '$2'}}>
@@ -262,8 +231,6 @@ const columns = [
       {name: 'PRESENTACIÓN', uid: 'presentation'},
       {name: 'P. UNITARIO', uid: 'precio_unitario'},
       {name: 'P. MAYORISTA', uid: 'precio_mayorista'},
-      {name: 'STOCK', uid: 'stock'},
-      {name: 'ESTADO', uid: 'status'},
       {name: 'ACCIONES', uid: 'actions'},
    ];
 

@@ -34,9 +34,9 @@ export default function RutasPage() {
 
   return (
     <div className="container mx-auto py-8 px-4">
-      <div className="mb-8">
-        <h1 className="text-4xl font-bold text-gray-900">Gestión de Rutas de Despacho</h1>
-        <p className="text-gray-600 mt-2">
+      <div className="mb-8 p-6 rounded-xl bg-gradient-to-r from-indigo-500 to-purple-600 text-white shadow-lg">
+        <h1 className="text-4xl font-bold">🗺️ Gestión de Rutas de Despacho</h1>
+        <p className="text-indigo-100 mt-2">
           Crea y administra rutas de despacho agrupando clientes por proximidad geográfica
         </p>
       </div>

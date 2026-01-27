@@ -1,0 +1,188 @@
+import React from 'react';
+import {
+  Table,
+  TableHeader,
+  TableColumn,
+  TableBody,
+  TableRow,
+  TableCell,
+  Chip,
+  Image,
+  Loading,
+  Tooltip,
+  Card,
+  Text,
+} from '@nextui-org/react';
+import { StockItem } from '../../services/inventario-api.service';
+
+const STOCK_BAJO_THRESHOLD = 10;
+const STOCK_AGOTADO_THRESHOLD = 0;
+
+interface StockTableProps {
+  items: StockItem[];
+  isLoading?: boolean;
+  onRowClick?: (item: StockItem) => void;
+}
+
+/**
+ * Componente tabla de stock con colores de alerta para stock bajo
+ */
+export const StockTable: React.FC<StockTableProps> = ({
+  items,
+  isLoading = false,
+  onRowClick,
+}) => {
+  const getStockStatus = (stock: number) => {
+    if (stock <= STOCK_AGOTADO_THRESHOLD) {
+      return {
+        label: 'AGOTADO',
+        color: 'danger',
+        bgColor: 'bg-red-50',
+      };
+    }
+    if (stock < STOCK_BAJO_THRESHOLD) {
+      return {
+        label: 'STOCK BAJO',
+        color: 'warning',
+        bgColor: 'bg-yellow-50',
+      };
+    }
+    return {
+      label: 'DISPONIBLE',
+      color: 'success',
+      bgColor: 'bg-green-50',
+    };
+  };
+
+  const renderCell = (item: StockItem, columnKey: React.Key) => {
+    const status = getStockStatus(item.stock);
+
+    switch (columnKey) {
+      case 'imagen':
+        return (
+          <div className="flex justify-center">
+            {item.urlImage ? (
+              <Image
+                src={item.urlImage}
+                alt={item.nombre}
+                width={50}
+                height={50}
+                className="rounded-lg object-cover"
+              />
+            ) : (
+              <div className="w-[50px] h-[50px] bg-gray-200 rounded-lg flex items-center justify-center">
+                <span className="text-xs text-gray-500">N/A</span>
+              </div>
+            )}
+          </div>
+        );
+
+      case 'nombre':
+        return <Text className="font-semibold">{item.nombre}</Text>;
+
+      case 'precio':
+        return (
+          <Text>
+            S/.{Number(item.precioUnitario).toFixed(2)}
+          </Text>
+        );
+
+      case 'stock':
+        return (
+          <Tooltip
+            content={`Stock actual: ${item.stock} unidades`}
+            color={status.color}
+          >
+            <Text
+              className={`font-bold text-lg ${
+                status.color === 'danger'
+                  ? 'text-red-600'
+                  : status.color === 'warning'
+                  ? 'text-orange-600'
+                  : 'text-green-600'
+              }`}
+            >
+              {item.stock}
+            </Text>
+          </Tooltip>
+        );
+
+      case 'estado':
+        return (
+          <Chip
+            size="sm"
+            variant="flat"
+            color={status.color}
+            className="capitalize font-semibold"
+          >
+            {status.label}
+          </Chip>
+        );
+
+      default:
+        return <Text>-</Text>;
+    }
+  };
+
+  const getRowClassName = (item: StockItem) => {
+    const status = getStockStatus(item.stock);
+    const baseClass =
+      'cursor-pointer hover:bg-opacity-50 transition-colors duration-200';
+    return `${baseClass} ${status.bgColor}`;
+  };
+
+  return (
+    <div className="w-full">
+      {isLoading && items.length === 0 ? (
+        <Card className="w-full p-8 flex items-center justify-center">
+          <Loading type="spinner" size="lg" color="primary" />
+          <Text className="mt-4">Cargando inventario...</Text>
+        </Card>
+      ) : (
+        <Table
+          aria-label="Tabla de Stock"
+          className="w-full"
+          css={{ minWidth: '100%' }}
+        >
+          <TableHeader>
+            <TableColumn key="imagen" align="center">
+              Imagen
+            </TableColumn>
+            <TableColumn key="nombre" align="start">
+              Producto
+            </TableColumn>
+            <TableColumn key="precio" align="end">
+              Precio Unit.
+            </TableColumn>
+            <TableColumn key="stock" align="center">
+              Stock Actual
+            </TableColumn>
+            <TableColumn key="estado" align="center">
+              Estado
+            </TableColumn>
+          </TableHeader>
+          <TableBody
+            items={items}
+            emptyContent={
+              <Text className="text-center py-10">
+                No hay productos en el inventario
+              </Text>
+            }
+          >
+            {(item) => (
+              <TableRow
+                key={item.idProducto}
+                className={getRowClassName(item)}
+                onClick={() => onRowClick?.(item)}
+              >
+                {(columnKey) => (
+                  <TableCell>{renderCell(item, columnKey)}</TableCell>
+                )}
+              </TableRow>
+            )}
+          </TableBody>
+        </Table>
+      )}
+    </div>
+  );
+};

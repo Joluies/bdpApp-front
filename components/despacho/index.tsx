@@ -249,20 +249,36 @@ export const DespachoContent = () => {
   return (
     <Flex direction="column" css={{ gap: '$6', padding: '$6' }}>
       {/* Header */}
-      <Flex justify="between" align="center">
+      <Flex 
+        justify="between" 
+        align="center"
+        css={{
+          background: 'linear-gradient(135deg, #f59e0b 0%, #d97706 100%)',
+          padding: '$6',
+          borderRadius: '$xl',
+          marginBottom: '$4',
+        }}
+      >
         <Flex direction="column">
-          <Text h2 css={{ color: '#034F32', m: 0 }}>
-            Centro de Despacho
+          <Text h2 css={{ color: 'white', m: 0, fontWeight: 'bold' }}>
+            🚚 Centro de Despacho
           </Text>
-          <Text css={{ color: '$gray600' }}>
+          <Text css={{ color: 'rgba(255, 255, 255, 0.8)' }}>
             Gestión y seguimiento de camiones y rutas de entrega
           </Text>
         </Flex>
         <Button 
           auto
           css={{ 
-            background: '#5CAC4C', 
-            '&:hover': { background: '#034F32' } 
+            background: 'linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%)',
+            color: 'white',
+            fontWeight: 'bold',
+            border: 'none',
+            '&:hover': { 
+              background: 'linear-gradient(135deg, #fcd34d 0%, #fbbf24 100%)',
+              transform: 'translateY(-2px)',
+              boxShadow: '0 10px 30px rgba(245, 158, 11, 0.3)'
+            } 
           }}
         >
           Generar Reporte

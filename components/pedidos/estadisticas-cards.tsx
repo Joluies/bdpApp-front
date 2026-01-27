@@ -53,42 +53,54 @@ const EstadisticaCard: React.FC<EstadisticaCardProps> = ({
       switch (color) {
          case 'success':
             return {
-               backgroundColor: '#dcfce7', // Verde claro como "Disponibles"
-               borderColor: '#bbf7d0',
+               background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)',
+               borderColor: '#10b981',
             };
          case 'warning':
             return {
-               backgroundColor: '#fce7e7', // Rosa claro como "Agotados"
-               borderColor: '#fbb6b6',
+               background: 'linear-gradient(135deg, #f59e0b 0%, #d97706 100%)',
+               borderColor: '#f59e0b',
             };
          case 'secondary':
             return {
-               backgroundColor: '#064e3b', // Verde oscuro como "Valor Total Inventario"
-               borderColor: '#047857',
+               background: 'linear-gradient(135deg, #06b6d4 0%, #0891b2 100%)',
+               borderColor: '#06b6d4',
             };
          default:
             return {
-               backgroundColor: '#f0f9ff',
-               borderColor: '#bae6fd',
+               background: 'linear-gradient(135deg, #3b82f6 0%, #1e40af 100%)',
+               borderColor: '#3b82f6',
             };
       }
    };
 
    const colorStyles = getColorStyles();
-   const isSecondary = color === 'secondary';
+   const isSecondary = color === 'secondary' || color === 'success' || color === 'warning';
 
    return (
       <Card
          css={{
-            padding: '$6',
-            borderRadius: '$lg',
-            border: '2px solid',
-            backgroundColor: colorStyles.backgroundColor,
-            borderColor: colorStyles.borderColor,
-            transition: 'all 0.2s ease',
+            padding: '$8',
+            borderRadius: '$xl',
+            border: 'none',
+            background: colorStyles.background,
+            position: 'relative',
+            overflow: 'hidden',
+            boxShadow: '0 10px 30px ' + (
+               color === 'success' ? 'rgba(16, 185, 129, 0.25)' :
+               color === 'warning' ? 'rgba(245, 158, 11, 0.25)' :
+               color === 'secondary' ? 'rgba(6, 182, 212, 0.25)' :
+               'rgba(59, 130, 246, 0.25)'
+            ),
+            transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
             '&:hover': {
-               transform: 'translateY(-2px)',
-               boxShadow: '0 4px 20px rgba(0,0,0,0.1)',
+               transform: 'translateY(-4px)',
+               boxShadow: '0 15px 40px ' + (
+                  color === 'success' ? 'rgba(16, 185, 129, 0.35)' :
+                  color === 'warning' ? 'rgba(245, 158, 11, 0.35)' :
+                  color === 'secondary' ? 'rgba(6, 182, 212, 0.35)' :
+                  'rgba(59, 130, 246, 0.35)'
+               ),
             }
          }}
       >

@@ -27,9 +27,25 @@ export const VentasContent = () => {
             }}
          >
             {/* Título */}
-            <Flex justify={'between'} align={'center'}>
-               <Text h3 css={{ margin: 0 }}>
-                  Gestión de Ventas
+            <Flex 
+               justify={'between'} 
+               align={'center'}
+               css={{
+                  background: 'linear-gradient(135deg, #ec4899 0%, #be185d 100%)',
+                  padding: '$6',
+                  borderRadius: '$xl',
+                  marginBottom: '$4',
+               }}
+            >
+               <Text 
+                  h3 
+                  css={{ 
+                     margin: 0,
+                     color: 'white',
+                     fontWeight: 'bold'
+                  }}
+               >
+                  💰 Gestión de Ventas
                </Text>
             </Flex>
 

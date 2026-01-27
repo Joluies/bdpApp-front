@@ -18,6 +18,7 @@ import {DevIcon} from '../icons/sidebar/dev-icon';
 import {ViewIcon} from '../icons/sidebar/view-icon';
 import {SettingsIcon} from '../icons/sidebar/settings-icon';
 import {BonificacionesIcon} from '../icons/sidebar/bonificaciones-icon';
+import {InventarioIcon} from '../icons/sidebar/inventario-icon';
 import {CollapseItems} from './collapse-items';
 import {CollapseItemsWithAction} from './collapse-items-with-action';
 import {SidebarItem} from './sidebar-item';
@@ -123,6 +124,12 @@ export const SidebarWrapper = () => {
                         title="Bonificaciones"
                         icon={<BonificacionesIcon />}
                         href="/bonificaciones"
+                     />
+                     <SidebarItem
+                        isActive={router.pathname === '/inventario'}
+                        title="Inventario"
+                        icon={<InventarioIcon />}
+                        href="/inventario"
                      />
                      
                      <CollapseItemsWithAction

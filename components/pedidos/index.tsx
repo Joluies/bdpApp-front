@@ -24,9 +24,19 @@ export const PedidosContent = () => {
             }}
          >
             {/* Título */}
-            <Flex justify={'between'} align={'center'}>
-               <Text h3 css={{ margin: 0 }}>
-                  Gestión de Pedidos
+            <Flex justify={'between'} align={'center'} css={{
+               background: 'linear-gradient(135deg, #7c3aed 0%, #5b21b6 100%)',
+               padding: '$6',
+               borderRadius: '$xl',
+               mb: '$4',
+            }}>
+               <Text h3 css={{ 
+                  margin: 0,
+                  color: 'white',
+                  fontWeight: 'bold',
+                  fontSize: '$2xl',
+               }}>
+                  📋 Gestión de Pedidos
                </Text>
             </Flex>
 

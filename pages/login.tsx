@@ -98,36 +98,45 @@ const Login: React.FC = () => {
       justify="center"
       css={{
         minHeight: '100vh',
-        background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+        background: 'linear-gradient(135deg, #1e40af 0%, #0ea5e9 100%)',
       }}
     >
       <div
         style={{
           width: '100%',
-          maxWidth: '400px',
+          maxWidth: '420px',
         }}
       >
         <Card
           css={{
             padding: '$20',
-            boxShadow: '0 10px 40px rgba(0,0,0,0.2)',
+            borderRadius: '$xl',
+            boxShadow: '0 20px 60px rgba(30, 64, 175, 0.3)',
+            border: 'none',
+            background: 'white'
           }}
         >
           {/* Logo/Header */}
           <div
             style={{
               textAlign: 'center',
-              marginBottom: '20px',
+              padding: '20px',
+              background: 'linear-gradient(135deg, #1e40af 0%, #0ea5e9 100%)',
+              borderRadius: '12px',
+              marginLeft: '-32px',
+              marginRight: '-32px',
+              marginTop: '-32px',
+              marginBottom: '20px'
             }}
           >
-            <Text h1 color="primary" css={{ margin: '0 0 10px 0' }}>
+            <Text h1 css={{ margin: '0 0 10px 0', color: 'white' }}>
               🥤
             </Text>
-            <Text h3 css={{ margin: '0' }}>
+            <Text h3 css={{ margin: '0', color: 'white', fontWeight: 'bold' }}>
               Bebidas del Perú
             </Text>
-            <Text size="sm" color="warning" css={{ margin: '5px 0 0 0' }}>
-              Dashboard
+            <Text size="sm" css={{ margin: '5px 0 0 0', color: 'rgba(255, 255, 255, 0.8)' }}>
+              Sistema de Gestión
             </Text>
           </div>
 
@@ -150,6 +159,14 @@ const Login: React.FC = () => {
               required
               color={username ? 'success' : 'default'}
               contentLeft={<Text>👤</Text>}
+              css={{
+                '& input': {
+                  borderColor: '#e5e7eb !important',
+                  '&:focus': {
+                    borderColor: '#1e40af !important',
+                  }
+                }
+              }}
             />
 
             <Spacer y={1} />
@@ -169,6 +186,14 @@ const Login: React.FC = () => {
               required
               color={password ? 'success' : 'default'}
               contentLeft={<Text>🔒</Text>}
+              css={{
+                '& input': {
+                  borderColor: '#e5e7eb !important',
+                  '&:focus': {
+                    borderColor: '#1e40af !important',
+                  }
+                }
+              }}
             />
 
             <Spacer y={0.5} />
@@ -177,14 +202,14 @@ const Login: React.FC = () => {
             {errorLocal && (
               <div
                 style={{
-                  padding: '10px',
+                  padding: '12px',
                   backgroundColor: '#fee2e2',
-                  border: '1px solid #fca5a5',
-                  borderRadius: '6px',
-                  marginBottom: '10px',
+                  border: '2px solid #fca5a5',
+                  borderRadius: '8px',
+                  marginBottom: '16px',
                 }}
               >
-                <Text color="error" size="sm">
+                <Text color="error" size="sm" weight="medium">
                   ⚠️ {errorLocal}
                 </Text>
               </div>
@@ -194,9 +219,20 @@ const Login: React.FC = () => {
 
             {/* Botón Login */}
             <Button
-              css={{ width: '100%' }}
+              css={{ 
+                width: '100%',
+                background: 'linear-gradient(135deg, #1e40af 0%, #0ea5e9 100%)',
+                color: 'white',
+                fontWeight: 'bold',
+                fontSize: '1rem',
+                '&:hover': {
+                  background: 'linear-gradient(135deg, #1e3a8a 0%, #0284c7 100%)',
+                  transform: 'translateY(-2px)',
+                  boxShadow: '0 10px 25px rgba(30, 64, 175, 0.3)'
+                },
+                transition: 'all 0.3s ease'
+              }} 
               type="submit"
-              color="primary"
               size="lg"
               disabled={enviando || !username || !password}
             >
