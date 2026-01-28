@@ -51,18 +51,6 @@ export const ProductsTable = ({products, onUpdateProduct, onDeleteProduct}: Prop
 
    const renderCell = (product: ProductLocal, columnKey: React.Key) => {
       switch (columnKey) {
-         case 'codProduct':
-            return (
-               <Text
-                  css={{
-                     fontSize: '$sm',
-                     fontWeight: '$semibold',
-                     color: '#034F32'
-                  }}
-               >
-                  {product.codProduct}
-               </Text>
-            );
          case 'image':
             return (
                <Box css={{display: 'flex', alignItems: 'center'}}>
@@ -224,7 +212,6 @@ export const ProductsTable = ({products, onUpdateProduct, onDeleteProduct}: Prop
    };
 
 const columns = [
-      {name: 'CÓDIGO', uid: 'codProduct'},
       {name: 'IMAGEN', uid: 'image'},
       {name: 'NOMBRE', uid: 'name'},
       {name: 'DESCRIPCIÓN', uid: 'description'},

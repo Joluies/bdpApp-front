@@ -7,7 +7,7 @@ import {
   Card,
   Loading,
 } from '@nextui-org/react';
-import { StockItem, inventarioApiService, AddStockRequest } from '../../services/inventario-api.service';
+import { StockItem, inventarioApiService, AddStockRequest, getUnidadesPorPaquete } from '../../services/inventario-api.service';
 
 interface AddStockModalProps {
   isOpen: boolean;
@@ -61,9 +61,14 @@ export const AddStockModal: React.FC<AddStockModalProps> = ({
 
       setIsLoading(true);
 
+      // Convertir paquetes a unidades
+      const productoData = productos.find(p => p.idProducto === Number(selectedProducto));
+      const unidadesPorPaquete = productoData?.unidadesPorPaquete ?? getUnidadesPorPaquete(productoData?.presentacion);
+      const cantidadEnUnidades = cantidadNum * unidadesPorPaquete;
+
       const request: AddStockRequest = {
         idProducto: Number(selectedProducto),
-        cantidad: cantidadNum,
+        cantidad: cantidadEnUnidades,
       };
 
       const response = await inventarioApiService.addStock(request);
@@ -111,16 +116,24 @@ export const AddStockModal: React.FC<AddStockModalProps> = ({
       </Modal.Header>
 
       <Modal.Body>
-        {success ? (
-          <Card className="bg-green-50">
-            <Text h4 className="text-green-700">
-              ✅ Stock ingresado correctamente
-            </Text>
-            <Text className="text-green-600">
-              {selectedProductoData?.nombre} +{cantidad} unidades
-            </Text>
-          </Card>
-        ) : (
+        {success ? (() => {
+          const unidadesPorPaquete = selectedProductoData?.unidadesPorPaquete ?? getUnidadesPorPaquete(selectedProductoData?.presentacion);
+          const unidadesIngresadas = Number(cantidad) * unidadesPorPaquete;
+          
+          return (
+            <Card className="bg-green-50">
+              <Text h4 className="text-green-700">
+                ✅ Stock ingresado correctamente
+              </Text>
+              <Text className="text-green-600">
+                {selectedProductoData?.nombre}
+              </Text>
+              <Text className="text-green-600" size={14}>
+                +{cantidad} paquetes ({unidadesIngresadas} unidades)
+              </Text>
+            </Card>
+          );
+        })() : (
           <>
             {error && (
               <Card className="bg-red-50">
@@ -150,38 +163,55 @@ export const AddStockModal: React.FC<AddStockModalProps> = ({
                 }}
               >
                 <option value="">-- Selecciona un producto --</option>
-                {productos.map((producto) => (
-                  <option key={producto.idProducto} value={String(producto.idProducto)}>
-                    {producto.nombre} (Stock: {producto.stock})
-                  </option>
-                ))}
+                {productos.map((producto) => {
+                  const unidadesPorPaquete = producto.unidadesPorPaquete ?? getUnidadesPorPaquete(producto.presentacion);
+                  const paquetes = producto.stockPaquetes ?? Math.floor(producto.stock / unidadesPorPaquete);
+                  const sueltas = producto.stockUnidadesSueltas ?? (producto.stock % unidadesPorPaquete);
+                  return (
+                    <option key={producto.idProducto} value={String(producto.idProducto)}>
+                      {producto.nombre} (Stock: {paquetes} paq.{sueltas > 0 ? ` +${sueltas} unid.` : ''})
+                    </option>
+                  );
+                })}
               </select>
             </div>
 
-            {selectedProductoData && (
-              <Card className="bg-blue-50">
-                <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                  <div>
-                    <Text size={12} className="text-gray-600">
-                      Stock Actual
-                    </Text>
-                    <Text weight="bold">{selectedProductoData.stock} unidades</Text>
+            {selectedProductoData && (() => {
+              const unidadesPorPaquete = selectedProductoData.unidadesPorPaquete ?? getUnidadesPorPaquete(selectedProductoData.presentacion);
+              const paquetesActuales = selectedProductoData.stockPaquetes ?? Math.floor(selectedProductoData.stock / unidadesPorPaquete);
+              const sueltasActuales = selectedProductoData.stockUnidadesSueltas ?? (selectedProductoData.stock % unidadesPorPaquete);
+              
+              return (
+                <Card className="bg-blue-50">
+                  <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px' }}>
+                    <div>
+                      <Text size={12} className="text-gray-600">
+                        Stock Actual
+                      </Text>
+                      <Text weight="bold">
+                        {paquetesActuales} paquetes
+                        {sueltasActuales > 0 && <span style={{ fontSize: '12px', color: '#666' }}> +{sueltasActuales} unid.</span>}
+                      </Text>
+                    </div>
+                    <div>
+                      <Text size={12} className="text-gray-600">
+                        Precio Unitario
+                      </Text>
+                      <Text weight="bold">
+                        S/. {Number(selectedProductoData.precioUnitario).toFixed(2)}
+                      </Text>
+                    </div>
                   </div>
-                  <div>
-                    <Text size={12} className="text-gray-600">
-                      Precio Unitario
-                    </Text>
-                    <Text weight="bold">
-                      S/. {Number(selectedProductoData.precioUnitario).toFixed(2)}
-                    </Text>
+                  <div style={{ fontSize: '11px', color: '#666' }}>
+                    {unidadesPorPaquete} unidades por paquete
                   </div>
-                </div>
-              </Card>
-            )}
+                </Card>
+              );
+            })()}
 
             <Input
               type="number"
-              label="Cantidad a Ingresar"
+              label="Cantidad de Paquetes a Ingresar"
               placeholder="0"
               value={cantidad}
               onChange={(e) => {
@@ -193,20 +223,34 @@ export const AddStockModal: React.FC<AddStockModalProps> = ({
               required
             />
 
-            {cantidad && selectedProductoData && (
-              <Card className="bg-gradient-to-r from-purple-50 to-blue-50">
-                <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                  <Text size={12}>Cantidad a ingresar:</Text>
-                  <Text weight="bold">{cantidad} unidades</Text>
-                </div>
-                <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '8px' }}>
-                  <Text size={12}>Stock después:</Text>
-                  <Text weight="bold" className="text-green-700">
-                    {selectedProductoData.stock + Number(cantidad)} unidades
-                  </Text>
-                </div>
-              </Card>
-            )}
+            {cantidad && selectedProductoData && (() => {
+              const unidadesPorPaquete = selectedProductoData.unidadesPorPaquete ?? getUnidadesPorPaquete(selectedProductoData.presentacion);
+              const paquetesAIngresar = Number(cantidad);
+              const unidadesAIngresar = paquetesAIngresar * unidadesPorPaquete;
+              const stockTotalDespues = selectedProductoData.stock + unidadesAIngresar;
+              const paquetesTotalesDespues = Math.floor(stockTotalDespues / unidadesPorPaquete);
+              const sueltasDespues = stockTotalDespues % unidadesPorPaquete;
+              
+              return (
+                <Card className="bg-gradient-to-r from-purple-50 to-blue-50">
+                  <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                    <Text size={12}>Paquetes a ingresar:</Text>
+                    <Text weight="bold">{paquetesAIngresar} paquetes</Text>
+                  </div>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '4px' }}>
+                    <Text size={11} className="text-gray-600">Equivale a:</Text>
+                    <Text size={11} className="text-gray-600">{unidadesAIngresar} unidades</Text>
+                  </div>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '12px', paddingTop: '8px', borderTop: '1px solid #ddd' }}>
+                    <Text size={12}>Stock después:</Text>
+                    <Text weight="bold" className="text-green-700">
+                      {paquetesTotalesDespues} paquetes
+                      {sueltasDespues > 0 && <span style={{ fontSize: '11px' }}> +{sueltasDespues} unid.</span>}
+                    </Text>
+                  </div>
+                </Card>
+              );
+            })()}
           </>
         )}
       </Modal.Body>

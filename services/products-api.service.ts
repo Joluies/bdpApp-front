@@ -252,8 +252,6 @@ class ProductsApiService {
       formData.append('presentacion', productData.presentacion || productData.presentation);
       formData.append('precioUnitario', String(productData.precioUnitario || productData.precio_unitario || '0'));
       formData.append('precioMayorista', String(productData.precioMayorista || productData.precio_mayorista || '0'));
-      formData.append('stockPaquete', String(productData.stockPaquete || productData.stockPaquete || '0'));
-      formData.append('stockUnid', String(productData.stockUnid || productData.stockUnid || '15'));
       
       // Agregar archivo si existe
       if (imageFile) {

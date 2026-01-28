@@ -4,12 +4,44 @@ const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL
   ? process.env.NEXT_PUBLIC_API_URL
   : 'https://api.bebidasdelperuapp.com';
 
+// Constantes
+export const UNIDADES_POR_PAQUETE_410ML = 15;
+export const UNIDADES_POR_PAQUETE_2L = 6;
+
+/**
+ * Determina cuántas unidades tiene un paquete según la presentación
+ * @param presentacion - La presentación del producto (ej: "410ml", "2L", "2 Litros")
+ * @returns Número de unidades por paquete
+ */
+export const getUnidadesPorPaquete = (presentacion?: string): number => {
+  if (!presentacion) return UNIDADES_POR_PAQUETE_410ML; // Default
+  
+  const presentacionLower = presentacion.toLowerCase();
+  
+  // Detectar botellas de 2 litros
+  if (presentacionLower.includes('2l') || 
+      presentacionLower.includes('2 l') ||
+      presentacionLower.includes('2litro') || 
+      presentacionLower.includes('2 litro') ||
+      presentacionLower.includes('2000ml') ||
+      presentacionLower.includes('2000 ml')) {
+    return UNIDADES_POR_PAQUETE_2L;
+  }
+  
+  // Default: botellas de 410ml u otros
+  return UNIDADES_POR_PAQUETE_410ML;
+};
+
 // Interfaces
 export interface StockItem {
   idProducto: number;
   nombre: string;
+  presentacion?: string;
   precioUnitario: number;
   stock: number;
+  stockPaquetes?: number;
+  stockUnidadesSueltas?: number;
+  unidadesPorPaquete?: number;
   urlImage?: string | null;
   estado?: 'NORMAL' | 'STOCK_BAJO' | 'AGOTADO';
   created_at?: string;
@@ -97,6 +129,7 @@ class InventarioApiService {
         data: Array<{
           idProducto: number;
           nombre: string;
+          presentacion?: string;
           precioUnitario: number;
           current_stock: number;
           stockTotal?: number;
@@ -114,20 +147,31 @@ class InventarioApiService {
       }
 
       // Mapeamos los datos al formato StockItem
-      const stockItems: StockItem[] = response.data.data.map((product) => ({
-        idProducto: product.idProducto,
-        nombre: product.nombre,
-        precioUnitario: product.precioUnitario,
-        stock: product.current_stock || 0,
-        urlImage: product.urlImage,
-        created_at: product.created_at,
-        updated_at: product.updated_at,
-        estado: product.current_stock === 0 
-          ? 'AGOTADO' 
-          : product.current_stock < 10 
-          ? 'STOCK_BAJO' 
-          : 'NORMAL',
-      }));
+      const stockItems: StockItem[] = response.data.data.map((product) => {
+        const stock = product.current_stock || 0;
+        const unidadesPorPaquete = getUnidadesPorPaquete(product.presentacion);
+        const stockPaquetes = Math.floor(stock / unidadesPorPaquete);
+        const stockUnidadesSueltas = stock % unidadesPorPaquete;
+        
+        return {
+          idProducto: product.idProducto,
+          nombre: product.nombre,
+          presentacion: product.presentacion,
+          precioUnitario: product.precioUnitario,
+          stock: stock,
+          stockPaquetes: stockPaquetes,
+          stockUnidadesSueltas: stockUnidadesSueltas,
+          unidadesPorPaquete: unidadesPorPaquete,
+          urlImage: product.urlImage,
+          created_at: product.created_at,
+          updated_at: product.updated_at,
+          estado: stock === 0 
+            ? 'AGOTADO' 
+            : stock < 10 
+            ? 'STOCK_BAJO' 
+            : 'NORMAL',
+        };
+      });
 
       console.log(`✅ ${stockItems.length} productos mapeados`);
       return stockItems;

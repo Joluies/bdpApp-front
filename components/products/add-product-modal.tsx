@@ -135,15 +135,11 @@ export const AddProductModal: React.FC<AddProductModalProps> = ({
          
          // También crear el producto local para la tabla
          const newProduct: Omit<ProductLocal, 'id'> = {
-            codProduct: `PRD-${Date.now()}`,
             name: formData.name,
             description: formData.description || 'Sin descripción',
             presentation: formData.presentation,
             precio_unitario: parseFloat(formData.precio_unitario),
             precio_mayorista: parseFloat(formData.precio_mayorista),
-            stockPaquete: 0,
-            stockUnid: 0,
-            stockTotal: 0,
             image: imagePreview || '/images/products/default.jpg',
             category: Array.from(selectedCategory)[0] as string,
             status: 'Disponible'

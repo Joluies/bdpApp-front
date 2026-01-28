@@ -98,10 +98,6 @@ export const ProductsContent = () => {
     total: products.length,
     disponibles: products.filter((p) => p.status === "Disponible").length,
     agotados: products.filter((p) => p.status === "Agotado").length,
-    valorTotal: products.reduce(
-      (sum, p) => sum + p.precio_unitario * (p.stockTotal || 0),
-      0
-    ),
   };
 
   // Función para agregar un nuevo producto
@@ -152,9 +148,7 @@ export const ProductsContent = () => {
           descripcion: dataWithoutFile?.description ?? "",
           presentacion: dataWithoutFile?.presentation ?? "",
           precioUnitario: dataWithoutFile?.precio_unitario ?? 0,
-          precioMayorista: dataWithoutFile?.precio_mayorista ?? 0,
-          stockPaquete: dataWithoutFile?.stockPaquete ?? 0,
-          stockUnid: dataWithoutFile?.stockUnid ?? 15
+          precioMayorista: dataWithoutFile?.precio_mayorista ?? 0
         };
         
         console.log("📊 Datos a enviar al API con imagen:", apiUpdateData);
@@ -431,28 +425,6 @@ export const ProductsContent = () => {
                   }}
                 >
                   {stats.agotados}
-                </Text>
-              </Card>
-            </Grid>
-            <Grid xs={12} sm={3}>
-              <Card css={{ backgroundColor: "#034F32", p: "$6" }}>
-                <Text
-                  css={{
-                    color: "white",
-                    fontSize: "$sm",
-                    fontWeight: "$medium",
-                  }}
-                >
-                  Valor Total Inventario
-                </Text>
-                <Text
-                  css={{
-                    color: "#C8ECC9",
-                    fontSize: "$xl",
-                    fontWeight: "$bold",
-                  }}
-                >
-                  S/ {stats.valorTotal.toFixed(2)}
                 </Text>
               </Card>
             </Grid>

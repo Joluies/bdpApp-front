@@ -24,7 +24,7 @@ import {
   useStockBajo,
   useInventarioStats,
 } from '../../hooks/use-stock-polling';
-import { inventarioApiService, StockItem } from '../../services/inventario-api.service';
+import { inventarioApiService, StockItem, getUnidadesPorPaquete } from '../../services/inventario-api.service';
 import { useProtectedRoute } from '../../hooks/useProtectedRoute';
 import { AddStockModal } from './add-stock-modal';
 
@@ -337,7 +337,7 @@ export const InventarioContent = () => {
           </div>
         </Card.Header>
 
-        <Card.Body css={{ py: '$0' }}>
+        <Card.Body css={{ py: '$0', overflowX: 'auto' }}>
           {isLoadingStock ? (
             <div
               style={{
@@ -369,28 +369,116 @@ export const InventarioContent = () => {
               </Button>
             </div>
           ) : (
-            <table style={{ width: '100%', borderCollapse: 'collapse' }}>
-              <thead>
-                <tr style={{ borderBottom: '2px solid #e0e0e0' }}>
-                  <th style={{ padding: '12px', textAlign: 'left', fontWeight: 'bold' }}>Producto</th>
-                  <th style={{ padding: '12px', textAlign: 'center', fontWeight: 'bold' }}>Stock</th>
-                  <th style={{ padding: '12px', textAlign: 'right', fontWeight: 'bold' }}>Precio</th>
-                </tr>
-              </thead>
-              <tbody>
-                {filteredAndSortedItems.map((item) => (
-                  <tr key={item.idProducto} style={{ borderBottom: '1px solid #f0f0f0' }}>
-                    <td style={{ padding: '12px' }}>{item.nombre}</td>
-                    <td style={{ padding: '12px', textAlign: 'center', fontWeight: 'bold' }}>
-                      {item.stock}
-                    </td>
-                    <td style={{ padding: '12px', textAlign: 'right' }}>
-                      S/. {item.precioUnitario.toFixed(2)}
-                    </td>
+            <div style={{ width: '100%', overflowX: 'auto' }}>
+              <table style={{ 
+                width: '100%', 
+                borderCollapse: 'collapse',
+                tableLayout: 'auto'
+              }}>
+                <thead>
+                  <tr style={{ 
+                    borderBottom: '2px solid #e0e0e0',
+                    backgroundColor: '#f9f9f9'
+                  }}>
+                    <th style={{ 
+                      padding: '16px 12px', 
+                      textAlign: 'left', 
+                      fontWeight: 'bold',
+                      fontSize: '14px'
+                    }}>
+                      Producto
+                    </th>
+                    <th style={{ 
+                      padding: '16px 12px', 
+                      textAlign: 'center', 
+                      fontWeight: 'bold',
+                      fontSize: '14px',
+                      width: '200px'
+                    }}>
+                      Stock (Paquetes)
+                    </th>
+                    <th style={{ 
+                      padding: '16px 12px', 
+                      textAlign: 'right', 
+                      fontWeight: 'bold',
+                      fontSize: '14px',
+                      width: '150px'
+                    }}>
+                      Precio
+                    </th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
+                </thead>
+                <tbody>
+                  {filteredAndSortedItems.map((item) => {
+                    const unidadesPorPaquete = item.unidadesPorPaquete ?? getUnidadesPorPaquete(item.presentacion);
+                    const paquetes = item.stockPaquetes ?? Math.floor(item.stock / unidadesPorPaquete);
+                    const unidadesSueltas = item.stockUnidadesSueltas ?? (item.stock % unidadesPorPaquete);
+                    const stockColor = item.stock === 0 ? '#f31260' : item.stock < 10 ? '#f5a524' : '#17c964';
+                    
+                    return (
+                      <tr 
+                        key={item.idProducto} 
+                        style={{ 
+                          borderBottom: '1px solid #f0f0f0'
+                        }}
+                      >
+                        <td style={{ padding: '14px 12px', verticalAlign: 'middle' }}>
+                          <div style={{ fontWeight: '600', marginBottom: '4px', fontSize: '14px' }}>
+                            {item.nombre}
+                          </div>
+                          {item.presentacion && (
+                            <div style={{ fontSize: '12px', color: '#666' }}>
+                              {item.presentacion}
+                            </div>
+                          )}
+                        </td>
+                        <td style={{ 
+                          padding: '14px 12px', 
+                          textAlign: 'center',
+                          verticalAlign: 'middle'
+                        }}>
+                          <div 
+                            style={{ 
+                              display: 'inline-flex', 
+                              flexDirection: 'column', 
+                              alignItems: 'center',
+                              gap: '2px'
+                            }}
+                            title={`Total: ${item.stock} unidades\n${paquetes} paquetes de ${unidadesPorPaquete} unidades${unidadesSueltas > 0 ? `\n+ ${unidadesSueltas} unidades sueltas` : ''}`}
+                          >
+                            <div style={{ 
+                              fontSize: '18px', 
+                              fontWeight: 'bold',
+                              color: stockColor
+                            }}>
+                              {paquetes} paq.
+                            </div>
+                            {unidadesSueltas > 0 && (
+                              <div style={{ 
+                                fontSize: '11px', 
+                                color: '#666',
+                                fontWeight: '500'
+                              }}>
+                                +{unidadesSueltas} unid.
+                              </div>
+                            )}
+                          </div>
+                        </td>
+                        <td style={{ 
+                          padding: '14px 12px', 
+                          textAlign: 'right',
+                          fontWeight: '500',
+                          verticalAlign: 'middle',
+                          fontSize: '15px'
+                        }}>
+                          S/. {item.precioUnitario.toFixed(2)}
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
           )}
         </Card.Body>
       </Card>
