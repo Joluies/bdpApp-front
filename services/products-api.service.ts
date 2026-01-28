@@ -1,8 +1,24 @@
 // Servicio para la API real de productos de Bebidas del Perú
 // Usar la URL base disponible desde variables de entorno o fallback
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL 
-  ? process.env.NEXT_PUBLIC_API_URL
-  : 'https://api.bebidasdelperuapp.com';
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'https://api.bebidasdelperuapp.com/api';
+
+// Helper para obtener headers con autenticación
+const getAuthHeaders = () => {
+  const headers: Record<string, string> = {
+    'Content-Type': 'application/json',
+    'Accept': 'application/json',
+  };
+  
+  // Obtener token del localStorage
+  if (typeof window !== 'undefined') {
+    const token = localStorage.getItem('token');
+    if (token) {
+      headers['Authorization'] = `Bearer ${token}`;
+    }
+  }
+  
+  return headers;
+};
 
 export interface ApiProduct {
   idProducto: number;
@@ -52,8 +68,7 @@ class ProductsApiService {
     
     const config: RequestInit = {
       headers: {
-        'Content-Type': 'application/json',
-        'Accept': 'application/json',
+        ...getAuthHeaders(),
         ...options.headers,
       },
       ...options,
@@ -116,9 +131,9 @@ class ProductsApiService {
   // Obtener todos los productos
   async getProducts(): Promise<ApiProduct[]> {
     try {
-      console.log('🔍 Intentando conectar a la API:', `${API_BASE_URL}/api/products`);
+      console.log('🔍 Intentando conectar a la API:', `${API_BASE_URL}/products`);
       
-      const response = await this.request<any>('/api/products');
+      const response = await this.request<any>('/products');
       
       console.log('📦 Respuesta de la API recibida:', response);
       console.log('📦 Tipo de respuesta:', typeof response);
@@ -169,7 +184,7 @@ class ProductsApiService {
   // Obtener un producto por ID
   async getProduct(id: number): Promise<ApiProduct | null> {
     try {
-      const response = await this.request<ApiProduct | ApiResponse<ApiProduct>>(`/api/products/${id}`);
+      const response = await this.request<ApiProduct | ApiResponse<ApiProduct>>(`/products/${id}`);
       
       if ('data' in response) {
         return response.data as ApiProduct;
@@ -187,7 +202,7 @@ class ProductsApiService {
     try {
       console.log('📝 Datos a enviar para crear producto (JSON):', productData);
       
-      const response = await this.request<any>('/api/products', {
+      const response = await this.request<any>('/products', {
         method: 'POST',
         body: JSON.stringify(productData),
       });
@@ -262,7 +277,7 @@ class ProductsApiService {
       }
 
       // Hacer la petición
-      const apiUrl = `${API_BASE_URL}/api/products`;
+      const apiUrl = `${API_BASE_URL}/products`;
       console.log('🔗 URL completa de creación:', apiUrl);
       console.log('🔗 Método HTTP: POST (FormData)');
       
@@ -333,7 +348,7 @@ class ProductsApiService {
   // Actualizar un producto
   async updateProduct(id: number, productData: UpdateProductData): Promise<ApiProduct | null> {
     try {
-      const response = await this.request<ApiProduct | ApiResponse<ApiProduct>>(`/api/products/${id}`, {
+      const response = await this.request<ApiProduct | ApiResponse<ApiProduct>>(`/products/${id}`, {
         method: 'PUT',
         body: JSON.stringify(productData),
       });
@@ -387,7 +402,7 @@ class ProductsApiService {
       }
 
       // Hacer la petición con POST (Laravel lo interpreta como PUT gracias a _method)
-      const apiUrl = `${API_BASE_URL}/api/products/${id}`;
+      const apiUrl = `${API_BASE_URL}/products/${id}`;
       console.log('🔗 URL completa de actualización:', apiUrl);
       console.log('🔗 Método HTTP: POST (con _method=PUT)');
       
@@ -460,7 +475,7 @@ class ProductsApiService {
   // Eliminar un producto
   async deleteProduct(id: number): Promise<boolean> {
     try {
-      await this.request(`/api/products/${id}`, {
+      await this.request(`/products/${id}`, {
         method: 'DELETE',
       });
       
@@ -477,7 +492,7 @@ class ProductsApiService {
       const formData = new FormData();
       formData.append('image', file);
 
-      const response = await fetch(`${API_BASE_URL}/api/products/upload-image`, {
+      const response = await fetch(`${API_BASE_URL}/products/upload-image`, {
         method: 'POST',
         body: formData,
         // No incluir Content-Type para FormData

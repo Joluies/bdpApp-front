@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import {
    Table,
    Card,
@@ -13,139 +13,71 @@ import {
    Container,
    Tooltip
 } from '@nextui-org/react';
+import { useReactToPrint } from 'react-to-print';
 import { Flex } from '../styles/flex';
 import { Box } from '../styles/box';
 import { Venta, EstadoVenta, TipoDocumento } from '../../types/ventas';
 import { useClientSide } from '../hooks/useClientSide';
+import { VentasApiService } from '../../services/ventas-api.service';
+import TicketFactura from './TicketFactura';
 
-// Datos simulados - en producción vendrían de una API
-const ventasData: Venta[] = [
-   {
-      id: '1',
-      numeroVenta: 'VEN-2025-001',
-      fecha: '2025-11-06',
-      cliente: {
-         id: '1',
-         tipo: 'mayorista',
-         ruc: '12345678901',
-         razonSocial: 'Comercial Los Andes SAC',
-         direccion: 'Av. Los Andes 123',
-         telefonos: ['987654321'],
-         estado: 'Activo'
-      },
-      vendedor: {
-         id: '1',
-         nombres: 'Juan Carlos',
-         apellidos: 'Pérez García',
-         dni: '12345678',
-         fechaIngreso: '2024-01-15',
-         estado: 'activo'
-      },
-      items: [
-         {
-            id: '1',
-            idProducto: 1,
-            nombreProducto: 'Coca Cola 500ml',
-            presentacion: 'Botella',
-            cantidad: 24,
-            precioUnitario: 2.50,
-            subtotal: 60.00
-         }
-      ],
-      subtotal: 60.00,
-      igv: 10.80,
-      total: 70.80,
-      tipoDocumento: 'factura',
-      estado: 'completada'
-   },
-   {
-      id: '2',
-      numeroVenta: 'VEN-2025-002',
-      fecha: '2025-11-06',
-      fechaProgramada: '2025-11-07',
-      cliente: {
-         id: '2',
-         tipo: 'minorista',
-         dni: '87654321',
-         nombres: 'María Elena',
-         apellidos: 'González López',
-         direccion: 'Jr. Las Flores 456',
-         telefonos: ['987123456'],
-         estado: 'Activo'
-      },
-      vendedor: {
-         id: '2',
-         nombres: 'Ana María',
-         apellidos: 'Silva Torres',
-         dni: '87654321',
-         fechaIngreso: '2024-03-10',
-         estado: 'activo'
-      },
-      items: [
-         {
-            id: '2',
-            idProducto: 2,
-            nombreProducto: 'Agua San Luis 625ml',
-            presentacion: 'Botella',
-            cantidad: 12,
-            precioUnitario: 1.20,
-            subtotal: 14.40
-         }
-      ],
-      subtotal: 14.40,
-      igv: 2.59,
-      total: 16.99,
-      tipoDocumento: 'boleta',
-      estado: 'programada'
-   },
-   {
-      id: '3',
-      numeroVenta: 'VEN-2025-003',
-      fecha: '2025-11-05',
-      cliente: {
-         id: '3',
-         tipo: 'mayorista',
-         ruc: '98765432101',
-         razonSocial: 'Distribuidora Norte EIRL',
-         direccion: 'Av. Norte 789',
-         telefonos: ['987789456'],
-         estado: 'Activo'
-      },
-      vendedor: {
-         id: '1',
-         nombres: 'Juan Carlos',
-         apellidos: 'Pérez García',
-         dni: '12345678',
-         fechaIngreso: '2024-01-15',
-         estado: 'activo'
-      },
-      items: [
-         {
-            id: '3',
-            idProducto: 3,
-            nombreProducto: 'Sprite 500ml',
-            presentacion: 'Botella',
-            cantidad: 36,
-            precioUnitario: 2.30,
-            subtotal: 82.80
-         }
-      ],
-      subtotal: 82.80,
-      igv: 14.90,
-      total: 97.70,
-      tipoDocumento: 'factura',
-      estado: 'completada'
-   }
-];
+// Declaración de tipo para el componente TicketFactura
+const TicketFacturaTyped = TicketFactura as React.ForwardRefExoticComponent<{ venta: Venta } & React.RefAttributes<any>>;
 
 export const VentasTable = () => {
    const isClient = useClientSide();
-   const [ventas, setVentas] = useState<Venta[]>(ventasData);
+   const [ventas, setVentas] = useState<Venta[]>([]);
+   const [loading, setLoading] = useState(true);
+   const [error, setError] = useState<string | null>(null);
    const [selectedVenta, setSelectedVenta] = useState<Venta | null>(null);
    const [showAddModal, setShowAddModal] = useState(false);
    const [showDetalleModal, setShowDetalleModal] = useState(false);
-   const [showDocumentoModal, setShowDocumentoModal] = useState(false);
    const [busqueda, setBusqueda] = useState('');
+   const ticketRef = useRef<HTMLDivElement>(null);
+
+   // Configurar react-to-print
+   const handlePrint = useReactToPrint({
+      contentRef: ticketRef,
+      documentTitle: `Ticket-${selectedVenta?.numeroVenta || 'venta'}`,
+   });
+
+   // Cargar ventas desde la API
+   useEffect(() => {
+      const cargarVentas = async () => {
+         try {
+            setLoading(true);
+            setError(null);
+            console.log('Cargando ventas...');
+            const data = await VentasApiService.getVentas();
+            console.log('Ventas cargadas:', data);
+            setVentas(data);
+         } catch (error) {
+            console.error('Error al cargar las ventas:', error);
+            setError('Error al cargar las ventas. Por favor, verifica la consola.');
+         } finally {
+            setLoading(false);
+         }
+      };
+
+      cargarVentas();
+   }, []);
+
+   // Función para recargar las ventas
+   const recargarVentas = async () => {
+      try {
+         setLoading(true);
+         setError(null);
+         console.log('Recargando ventas...');
+         const data = await VentasApiService.getVentas();
+         console.log('Ventas recargadas:', data);
+         setVentas(data);
+      } catch (error) {
+         console.error('Error al recargar las ventas:', error);
+         setError('Error al recargar las ventas. Por favor, verifica la consola.');
+      } finally {
+         setLoading(false);
+      }
+   };
 
    const formatCurrency = (amount: number) => {
       if (!isClient) return 'S/ 0.00';
@@ -192,7 +124,12 @@ export const VentasTable = () => {
 
    const handleGenerarDocumento = (venta: Venta) => {
       setSelectedVenta(venta);
-      setShowDocumentoModal(true);
+      // Esperar un momento para que el estado se actualice antes de imprimir
+      setTimeout(() => {
+         if (handlePrint) {
+            handlePrint();
+         }
+      }, 100);
    };
 
    const columns = [
@@ -217,17 +154,36 @@ export const VentasTable = () => {
                      </Text>
                   </Col>
                   <Col css={{ width: 'auto' }}>
-                     <Button 
-                        color="primary" 
-                        auto
-                        onPress={() => setShowAddModal(true)}
-                     >
-                        Nueva Venta
-                     </Button>
+                     <Row>
+                        <Button 
+                           color="default" 
+                           auto
+                           flat
+                           onPress={recargarVentas}
+                           disabled={loading}
+                           css={{ marginRight: '$4' }}
+                        >
+                           {loading ? 'Cargando...' : '🔄 Actualizar'}
+                        </Button>
+                        <Button 
+                           color="primary" 
+                           auto
+                           onPress={() => setShowAddModal(true)}
+                        >
+                           Nueva Venta
+                        </Button>
+                     </Row>
                   </Col>
                </Row>
             </Card.Header>
             <Card.Body css={{ padding: 0 }}>
+               {/* Mensaje de error */}
+               {error && (
+                  <Box css={{ padding: '$4', backgroundColor: '$error100', borderRadius: '$sm', margin: '$4' }}>
+                     <Text color="error">{error}</Text>
+                  </Box>
+               )}
+
                {/* Filtro de búsqueda */}
                <Box css={{ padding: '$4' }}>
                   <Input
@@ -238,6 +194,15 @@ export const VentasTable = () => {
                      css={{ width: '100%', maxWidth: '400px' }}
                   />
                </Box>
+
+               {/* Información de debug */}
+               {!loading && (
+                  <Box css={{ padding: '$4', paddingTop: 0 }}>
+                     <Text size={12} color="$gray600">
+                        Total de ventas cargadas: {ventas.length}
+                     </Text>
+                  </Box>
+               )}
 
                {/* Tabla */}
                <Table
@@ -254,100 +219,115 @@ export const VentasTable = () => {
                      ))}
                   </Table.Header>
                   <Table.Body>
-                     {ventasFiltradas.map((venta) => (
-                        <Table.Row key={venta.id}>
-                           <Table.Cell>
-                              <Text size={14} weight="semibold">
-                                 {venta.numeroVenta}
-                              </Text>
-                           </Table.Cell>
-                           <Table.Cell>
-                              <div>
-                                 <Text size={14}>
-                                    {new Date(venta.fecha).toLocaleDateString('es-PE')}
+                     {loading ? (
+                        <Table.Row>
+                           <Table.Cell><Text>Cargando ventas...</Text></Table.Cell>
+                        </Table.Row>
+                     ) : error ? (
+                        <Table.Row>
+                           <Table.Cell>Error al cargar las ventas</Table.Cell>
+                        </Table.Row>
+                     ) : ventasFiltradas.length === 0 ? (
+                        <Table.Row>
+                           <Table.Cell>No hay pedidos confirmados registrados. Los pedidos confirmados aparecerán aquí automáticamente.</Table.Cell>
+                        </Table.Row>
+                     ) : (
+                        ventasFiltradas.map((venta) => (
+                           <Table.Row key={venta.id}>
+                              <Table.Cell>
+                                 <Text size={14} weight="semibold">
+                                    {venta.numeroVenta}
                                  </Text>
-                                 {venta.fechaProgramada && (
-                                    <Text size={12} color="primary">
-                                       Prog: {new Date(venta.fechaProgramada).toLocaleDateString('es-PE')}
+                              </Table.Cell>
+                              <Table.Cell>
+                                 <div>
+                                    <Text size={14}>
+                                       {new Date(venta.fecha).toLocaleDateString('es-PE')}
                                     </Text>
-                                 )}
-                              </div>
-                           </Table.Cell>
-                           <Table.Cell>
-                              <div>
-                                 <Text size={14} weight="medium">
-                                    {venta.cliente.tipo === 'mayorista' 
-                                       ? venta.cliente.razonSocial 
-                                       : `${venta.cliente.nombres} ${venta.cliente.apellidos}`}
+                                    {venta.fechaProgramada && (
+                                       <Text size={12} color="primary">
+                                          Prog: {new Date(venta.fechaProgramada).toLocaleDateString('es-PE')}
+                                       </Text>
+                                    )}
+                                 </div>
+                              </Table.Cell>
+                              <Table.Cell>
+                                 <div>
+                                    <Text size={14} weight="medium">
+                                       {venta.cliente.tipo === 'mayorista' 
+                                          ? venta.cliente.razonSocial 
+                                          : `${venta.cliente.nombres} ${venta.cliente.apellidos}`}
+                                    </Text>
+                                    <Text size={12} color="$gray600">
+                                       {venta.cliente.codCliente && `Cod: ${venta.cliente.codCliente} | `}
+                                       {venta.cliente.tipo === 'mayorista' ? venta.cliente.ruc : venta.cliente.dni}
+                                    </Text>
+                                 </div>
+                              </Table.Cell>
+                              <Table.Cell>
+                                 <Text size={14}>
+                                    {venta.vendedor.nombres} {venta.vendedor.apellidos}
                                  </Text>
-                                 <Text size={12} color="$gray600">
-                                    {venta.cliente.tipo === 'mayorista' ? venta.cliente.ruc : venta.cliente.dni}
+                              </Table.Cell>
+                              <Table.Cell>
+                                 <Text size={14} weight="semibold">
+                                    {formatCurrency(venta.total)}
                                  </Text>
-                              </div>
-                           </Table.Cell>
-                           <Table.Cell>
-                              <Text size={14}>
-                                 {venta.vendedor.nombres} {venta.vendedor.apellidos}
-                              </Text>
-                           </Table.Cell>
-                           <Table.Cell>
-                              <Text size={14} weight="semibold">
-                                 {formatCurrency(venta.total)}
-                              </Text>
-                           </Table.Cell>
-                           <Table.Cell>
-                              <Badge 
-                                 size="sm" 
-                                 color={getDocumentoColor(venta.tipoDocumento)}
-                                 variant="flat"
-                              >
-                                 {venta.tipoDocumento.toUpperCase()}
-                              </Badge>
-                           </Table.Cell>
-                           <Table.Cell>
-                              <Badge 
-                                 size="sm" 
-                                 color={getEstadoColor(venta.estado)}
-                                 variant="flat"
-                              >
-                                 {venta.estado.toUpperCase()}
-                              </Badge>
-                           </Table.Cell>
-                           <Table.Cell>
-                              <Row justify="flex-start" align="center">
-                                 <Col css={{ width: 'auto' }}>
-                                    <Tooltip content="Ver detalle">
-                                       <Button
-                                          size="sm"
-                                          color="primary"
-                                          flat
-                                          auto
-                                          onPress={() => handleVerDetalle(venta)}
-                                       >
-                                          Ver
-                                       </Button>
-                                    </Tooltip>
-                                 </Col>
-                                 {venta.estado === 'completada' && (
+                              </Table.Cell>
+                              <Table.Cell>
+                                 <Badge 
+                                    size="sm" 
+                                    color={getDocumentoColor(venta.tipoDocumento)}
+                                    variant="flat"
+                                 >
+                                    {venta.tipoDocumento.toUpperCase()}
+                                 </Badge>
+                              </Table.Cell>
+                              <Table.Cell>
+                                 <Badge 
+                                    size="sm" 
+                                    color={getEstadoColor(venta.estado)}
+                                    variant="flat"
+                                 >
+                                    {venta.estado.toUpperCase()}
+                                 </Badge>
+                              </Table.Cell>
+                              <Table.Cell>
+                                 <Row justify="flex-start" align="center">
                                     <Col css={{ width: 'auto' }}>
-                                       <Spacer x={0.5} />
-                                       <Tooltip content="Generar documento">
+                                       <Tooltip content="Ver detalle">
                                           <Button
                                              size="sm"
-                                             color="secondary"
+                                             color="primary"
                                              flat
                                              auto
-                                             onPress={() => handleGenerarDocumento(venta)}
+                                             onPress={() => handleVerDetalle(venta)}
                                           >
-                                             PDF
+                                             Ver
                                           </Button>
                                        </Tooltip>
                                     </Col>
-                                 )}
-                              </Row>
-                           </Table.Cell>
-                        </Table.Row>
-                     ))}
+                                    {venta.estado === 'completada' && (
+                                       <Col css={{ width: 'auto' }}>
+                                          <Spacer x={0.5} />
+                                          <Tooltip content="Imprimir ticket">
+                                             <Button
+                                                size="sm"
+                                                color="secondary"
+                                                flat
+                                                auto
+                                                onPress={() => handleGenerarDocumento(venta)}
+                                             >
+                                                🖨️ Imprimir
+                                             </Button>
+                                          </Tooltip>
+                                       </Col>
+                                    )}
+                                 </Row>
+                              </Table.Cell>
+                           </Table.Row>
+                        ))
+                     )}
                   </Table.Body>
                </Table>
             </Card.Body>
@@ -422,46 +402,12 @@ export const VentasTable = () => {
             </Modal.Footer>
          </Modal>
 
-         {/* Modal para generar documento */}
-         <Modal
-            closeButton
-            aria-labelledby="modal-documento-title"
-            open={showDocumentoModal}
-            onClose={() => setShowDocumentoModal(false)}
-            width="600px"
-         >
-            <Modal.Header>
-               <Text id="modal-documento-title" size={18}>
-                  Generar Documento
-               </Text>
-            </Modal.Header>
-            <Modal.Body>
-               {selectedVenta && (
-                  <div>
-                     <Text>Generando {selectedVenta.tipoDocumento} para la venta {selectedVenta.numeroVenta}</Text>
-                     <Spacer y={1} />
-                     <Text>Cliente: {
-                        selectedVenta.cliente.tipo === 'mayorista' 
-                           ? selectedVenta.cliente.razonSocial 
-                           : `${selectedVenta.cliente.nombres} ${selectedVenta.cliente.apellidos}`
-                     }</Text>
-                     <Text>Total: {formatCurrency(selectedVenta.total)}</Text>
-                  </div>
-               )}
-            </Modal.Body>
-            <Modal.Footer>
-               <Button auto flat color="error" onPress={() => setShowDocumentoModal(false)}>
-                  Cancelar
-               </Button>
-               <Button auto color="success" onPress={() => {
-                  // Aquí iría la lógica para generar el PDF
-                  console.log('Generando documento PDF...');
-                  setShowDocumentoModal(false);
-               }}>
-                  Generar PDF
-               </Button>
-            </Modal.Footer>
-         </Modal>
+         {/* Componente de ticket oculto para impresión */}
+         <div style={{ display: 'none' }}>
+            {selectedVenta && (
+               <TicketFacturaTyped ref={ticketRef} venta={selectedVenta} />
+            )}
+         </div>
       </Container>
    );
 };

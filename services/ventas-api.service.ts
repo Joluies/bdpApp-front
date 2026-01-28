@@ -4,8 +4,26 @@ import { Cliente } from '../types/clientes';
 // Configuración base de la API
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api';
 
+// Helper para obtener headers con autenticación
+const getHeaders = () => {
+   const headers: HeadersInit = {
+      'Content-Type': 'application/json',
+      'Accept': 'application/json',
+   };
+   
+   // Obtener token del localStorage
+   if (typeof window !== 'undefined') {
+      const token = localStorage.getItem('token');
+      if (token) {
+         headers['Authorization'] = `Bearer ${token}`;
+      }
+   }
+   
+   return headers;
+};
+
 export class VentasApiService {
-   // Obtener todas las ventas con filtros opcionales
+   // Obtener todas las ventas (pedidos confirmados) con filtros opcionales
    static async getVentas(filtros?: {
       fechaInicio?: string;
       fechaFin?: string;
@@ -15,19 +33,109 @@ export class VentasApiService {
    }): Promise<Venta[]> {
       try {
          const params = new URLSearchParams();
+         
+         // Filtrar solo pedidos confirmados, enviados o entregados
+         params.append('estado', 'confirmado');
+         
          if (filtros) {
             Object.entries(filtros).forEach(([key, value]) => {
-               if (value) params.append(key, value);
+               if (value && key !== 'estado') {
+                  params.append(key, value);
+               }
             });
          }
          
-         const response = await fetch(`${API_BASE_URL}/ventas?${params}`);
-         if (!response.ok) throw new Error('Error al obtener las ventas');
+         // Obtener todos los registros
+         params.append('per_page', '1000');
          
-         return await response.json();
+         console.log('Fetching ventas from:', `${API_BASE_URL}/pedidos?${params}`);
+         
+         const response = await fetch(`${API_BASE_URL}/pedidos?${params}`, {
+            method: 'GET',
+            headers: getHeaders(),
+         });
+         
+         if (!response.ok) {
+            console.error('Error response:', response.status, response.statusText);
+            const errorText = await response.text();
+            console.error('Error details:', errorText);
+            throw new Error(`Error al obtener las ventas: ${response.status}`);
+         }
+         
+         const result = await response.json();
+         console.log('Response data:', result);
+         
+         // Manejar respuesta con estructura { success, data, meta }
+         const pedidosData = result.data || result;
+         
+         if (!Array.isArray(pedidosData)) {
+            console.error('Response is not an array:', pedidosData);
+            return [];
+         }
+         
+         // Transformar pedidos a formato de venta para el frontend
+         return pedidosData.map((pedido: any) => {
+            console.log('Processing pedido:', pedido);
+            
+            // Usar el monto_total del pedido (que incluye bonificaciones y descuentos)
+            const total = parseFloat(pedido.monto_total || '0');
+            // Calcular IGV inverso (el total ya incluye IGV)
+            const subtotal = total / 1.18;
+            const igv = total - subtotal;
+            
+            // Transformar cliente con nombre completo y código
+            const clienteTransformado = {
+               ...pedido.cliente,
+               nombres: pedido.cliente?.nombre || '',
+               apellidos: pedido.cliente?.apellidos || '',
+               tipo: pedido.cliente?.tipoCliente === 'Mayorista' ? 'mayorista' : 'minorista',
+               razonSocial: pedido.cliente?.razon_social || '',
+               dni: pedido.cliente?.dni || '',
+               ruc: pedido.cliente?.ruc || '',
+               codCliente: pedido.cliente?.codigoCliente || ''
+            };
+            
+            // Transformar vendedor
+            const vendedorTransformado = {
+               id: pedido.vendedor?.id?.toString() || '',
+               nombres: pedido.vendedor?.nombre || '',
+               apellidos: pedido.vendedor?.apellidos || '',
+               dni: pedido.vendedor?.dni || '',
+               telefono: pedido.vendedor?.telefono || '',
+               email: pedido.vendedor?.email || '',
+               fechaIngreso: pedido.vendedor?.created_at || '',
+               estado: 'activo' as 'activo' | 'inactivo'
+            };
+            
+            return {
+               id: pedido.id?.toString() || pedido.idPedido?.toString(),
+               numeroVenta: pedido.numero_pedido,
+               fecha: pedido.fecha_pedido,
+               fechaProgramada: pedido.fecha_entrega,
+               cliente: clienteTransformado,
+               vendedor: vendedorTransformado,
+               items: (pedido.detalles || []).map((detalle: any) => ({
+                  id: detalle.id,
+                  idProducto: detalle.idProducto,
+                  nombreProducto: detalle.producto?.nombreProducto || 'Producto',
+                  presentacion: detalle.producto?.presentacion || '',
+                  cantidad: detalle.cantidad,
+                  precio_unitario: detalle.precio_unitario,
+                  precioUnitario: detalle.precio_unitario,
+                  subtotal: detalle.subtotal || (detalle.cantidad * detalle.precio_unitario),
+               })),
+               subtotal: parseFloat(subtotal.toFixed(2)),
+               igv: parseFloat(igv.toFixed(2)),
+               total: parseFloat(total.toFixed(2)),
+               tipoDocumento: pedido.tipo_documento || 'boleta',
+               estado: pedido.estado === 'confirmado' ? 'completada' : 
+                       pedido.estado === 'enviado' ? 'programada' :
+                       pedido.estado === 'entregado' ? 'completada' : pedido.estado
+            };
+         });
       } catch (error) {
          console.error('Error en getVentas:', error);
-         throw error;
+         return []; // Devolver array vacío en caso de error
       }
    }
 

@@ -1,8 +1,6 @@
 import axios, { AxiosInstance } from 'axios';
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL 
-  ? process.env.NEXT_PUBLIC_API_URL
-  : 'https://api.bebidasdelperuapp.com';
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'https://api.bebidasdelperuapp.com/api';
 
 // Constantes
 export const UNIDADES_POR_PAQUETE_410ML = 15;
@@ -92,7 +90,7 @@ class InventarioApiService {
     // Interceptor para agregar token de autenticación
     this.client.interceptors.request.use(
       (config) => {
-        const token = localStorage.getItem('access_token');
+        const token = localStorage.getItem('token') || localStorage.getItem('access_token');
         if (token) {
           config.headers.Authorization = `Bearer ${token}`;
         }
@@ -122,7 +120,7 @@ class InventarioApiService {
    */
   async getStockActual(): Promise<StockItem[]> {
     try {
-      console.log('🔍 Llamando a /api/inventory/current...');
+      console.log('🔍 Llamando a /inventory/current...');
       
       const response = await this.client.get<{
         success: boolean;
@@ -137,7 +135,7 @@ class InventarioApiService {
           created_at?: string;
           updated_at?: string;
         }>;
-      }>('/api/inventory/current');
+      }>('/inventory/current');
 
       console.log('✅ Respuesta recibida:', response.data);
 
@@ -191,7 +189,7 @@ class InventarioApiService {
   async getProductoStock(idProducto: number): Promise<StockItem> {
     try {
       const response = await this.client.get<ApiResponse<StockItem>>(
-        `/api/inventory/stock/${idProducto}`
+        `/inventory/stock/${idProducto}`
       );
       return response.data.data || ({} as StockItem);
     } catch (error) {
@@ -211,7 +209,7 @@ class InventarioApiService {
       });
 
       const response = await this.client.post<AddStockResponse>(
-        '/api/inventory/add',
+        '/inventory/add',
         {
           product_id: request.idProducto,
           quantity: request.cantidad,
@@ -282,7 +280,7 @@ class InventarioApiService {
           current_stock: number;
           urlImage?: string;
         }>;
-      }>(`/api/inventory/stock-bajo?threshold=${threshold}`);
+      }>(`/inventory/stock-bajo?threshold=${threshold}`);
       
       if (!response.data || !response.data.data) {
         return [];
@@ -313,8 +311,8 @@ class InventarioApiService {
     try {
       const params = new URLSearchParams({ limit: limit.toString() });
       const endpoint = idProducto
-        ? `/api/inventory/movements/${idProducto}?${params}`
-        : `/api/inventory/movements?${params}`;
+        ? `/inventory/movements/${idProducto}?${params}`
+        : `/inventory/movements?${params}`;
       
       const response = await this.client.get<ApiResponse<any[]>>(endpoint);
       return response.data.data || [];
@@ -330,7 +328,7 @@ class InventarioApiService {
   async updateStockAlertConfig(threshold: number): Promise<boolean> {
     try {
       const response = await this.client.put(
-        '/api/inventory/config',
+        '/inventory/config',
         { alertThreshold: threshold }
       );
       return response.status === 200;
@@ -357,7 +355,7 @@ class InventarioApiService {
           productosAgotados: number;
           valorTotalInventario: number;
         }>
-      >('/api/inventory/estadisticas');
+      >('/inventory/estadisticas');
       return response.data.data || {
         totalProductos: 0,
         productosStockBajo: 0,

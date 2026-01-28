@@ -9,7 +9,7 @@ import {
   Tooltip,
 } from '@nextui-org/react';
 import { Flex } from '../styles/flex';
-import { Eye, Edit2, Trash2 } from 'lucide-react';
+import { Eye, Edit2, Trash2, CheckCircle } from 'lucide-react';
 import PedidoService, { Pedido } from '@/services/PedidoService';
 
 interface Props {
@@ -29,6 +29,7 @@ export const PedidosList = ({ onEdit, onView, onRefresh }: Props) => {
   const [searchTerm, setSearchTerm] = useState('');
   const [filtroEstado, setFiltroEstado] = useState<string>('');
   const [deleting, setDeleting] = useState(false);
+  const [confirming, setConfirming] = useState(false);
 
   const cargarPedidos = async (page: number = 1) => {
     setLoading(true);
@@ -83,6 +84,30 @@ export const PedidosList = ({ onEdit, onView, onRefresh }: Props) => {
       alert('Error al eliminar: ' + (error.message || 'Error desconocido'));
     } finally {
       setDeleting(false);
+    }
+  };
+
+  const handleConfirmar = async (id: number) => {
+    if (!window.confirm('¿Confirmar este pedido? El pedido pasará al módulo de ventas y se descontará el stock.')) {
+      return;
+    }
+
+    try {
+      setConfirming(true);
+      const response = await PedidoService.cambiarEstado(id, 'confirmado');
+      
+      // Mostrar mensaje de éxito
+      if (response.success) {
+        alert(response.message || 'Pedido confirmado correctamente');
+      }
+      
+      cargarPedidos(currentPage);
+    } catch (error: any) {
+      console.error('Error completo al confirmar:', error);
+      const errorMsg = error.response?.data?.message || error.message || 'Error al confirmar el pedido. Por favor verifica el stock disponible.';
+      alert('Error al confirmar: ' + errorMsg);
+    } finally {
+      setConfirming(false);
     }
   };
 
@@ -145,6 +170,18 @@ export const PedidosList = ({ onEdit, onView, onRefresh }: Props) => {
       case 'acciones':
         return (
           <Flex justify="center" align="center" css={{ gap: '$6' }}>
+            {pedido.estado === 'pendiente' && (
+              <Tooltip content="Confirmar pedido" color="success">
+                <Button
+                  auto
+                  light
+                  color="success"
+                  icon={<CheckCircle size={20} />}
+                  onClick={() => handleConfirmar(pedido.id!)}
+                  disabled={confirming || deleting}
+                />
+              </Tooltip>
+            )}
             <Tooltip content="Ver detalles" color="primary">
               <Button
                 auto

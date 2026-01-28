@@ -1,7 +1,23 @@
 // Usar la URL base disponible desde variables de entorno o fallback
-const apiUrl = process.env.NEXT_PUBLIC_API_URL 
-  ? `${process.env.NEXT_PUBLIC_API_URL}/api`
-  : 'https://api.bebidasdelperuapp.com/api';
+const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'https://api.bebidasdelperuapp.com/api';
+
+// Helper para obtener headers con autenticación
+const getHeaders = () => {
+  const headers: HeadersInit = {
+    'Content-Type': 'application/json',
+    'Accept': 'application/json',
+  };
+  
+  // Obtener token del localStorage
+  if (typeof window !== 'undefined') {
+    const token = localStorage.getItem('token');
+    if (token) {
+      headers['Authorization'] = `Bearer ${token}`;
+    }
+  }
+  
+  return headers;
+};
 
 export interface DetallePedido {
   id?: number;
@@ -49,7 +65,9 @@ class PedidoService {
       const url = `${apiUrl}/pedidos${queryString ? '?' + queryString : ''}`;
       console.log('Fetching pedidos from:', url);
       
-      const response = await fetch(url);
+      const response = await fetch(url, {
+        headers: getHeaders()
+      });
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}));
         throw new Error(errorData.message || `Error ${response.status}: ${response.statusText}`);
@@ -88,7 +106,7 @@ class PedidoService {
   static async crearPedido(data: Partial<Pedido>) {
     const response = await fetch(`${apiUrl}/pedidos`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: getHeaders(),
       body: JSON.stringify(data)
     });
     if (!response.ok) {
@@ -102,7 +120,9 @@ class PedidoService {
    * Obtener un pedido específico
    */
   static async obtenerPedido(id: number) {
-    const response = await fetch(`${apiUrl}/pedidos/${id}`);
+    const response = await fetch(`${apiUrl}/pedidos/${id}`, {
+      headers: getHeaders()
+    });
     if (!response.ok) throw new Error('Error al obtener pedido');
     return response.json();
   }
@@ -113,7 +133,7 @@ class PedidoService {
   static async actualizarPedido(id: number, data: Partial<Pedido>) {
     const response = await fetch(`${apiUrl}/pedidos/${id}`, {
       method: 'PUT',
-      headers: { 'Content-Type': 'application/json' },
+      headers: getHeaders(),
       body: JSON.stringify(data)
     });
     if (!response.ok) throw new Error('Error al actualizar pedido');
@@ -126,11 +146,17 @@ class PedidoService {
   static async cambiarEstado(id: number, estado: string) {
     const response = await fetch(`${apiUrl}/pedidos/${id}/estado`, {
       method: 'PATCH',
-      headers: { 'Content-Type': 'application/json' },
+      headers: getHeaders(),
       body: JSON.stringify({ estado })
     });
-    if (!response.ok) throw new Error('Error al cambiar estado del pedido');
-    return response.json();
+    
+    const data = await response.json();
+    
+    if (!response.ok) {
+      throw new Error(data.message || `Error ${response.status}: ${response.statusText}`);
+    }
+    
+    return data;
   }
 
   /**
@@ -138,7 +164,8 @@ class PedidoService {
    */
   static async eliminarPedido(id: number) {
     const response = await fetch(`${apiUrl}/pedidos/${id}`, {
-      method: 'DELETE'
+      method: 'DELETE',
+      headers: getHeaders(),
     });
     if (!response.ok) throw new Error('Error al eliminar pedido');
     return response.json();
@@ -148,7 +175,9 @@ class PedidoService {
    * Obtener pedidos por vendedor
    */
   static async obtenerPedidosPorVendedor(vendedorId: number) {
-    const response = await fetch(`${apiUrl}/pedidos/vendedor/${vendedorId}`);
+    const response = await fetch(`${apiUrl}/pedidos/vendedor/${vendedorId}`, {
+      headers: getHeaders()
+    });
     if (!response.ok) throw new Error('Error al obtener pedidos del vendedor');
     return response.json();
   }
@@ -157,7 +186,9 @@ class PedidoService {
    * Obtener pedidos por cliente
    */
   static async obtenerPedidosPorCliente(clienteId: number) {
-    const response = await fetch(`${apiUrl}/pedidos/cliente/${clienteId}`);
+    const response = await fetch(`${apiUrl}/pedidos/cliente/${clienteId}`, {
+      headers: getHeaders()
+    });
     if (!response.ok) throw new Error('Error al obtener pedidos del cliente');
     return response.json();
   }

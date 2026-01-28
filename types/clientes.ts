@@ -6,6 +6,7 @@ export interface ClienteBase {
    fechaCreacion?: string;
    fechaActualizacion?: string;
    estado?: 'Activo' | 'Inactivo';
+   codCliente?: string; // Código de cliente
 }
 
 export interface ClienteMayorista extends ClienteBase {
