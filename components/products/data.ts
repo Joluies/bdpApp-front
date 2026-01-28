@@ -43,7 +43,9 @@ export const mapApiProductToLocal = (apiProduct: ApiProduct): ProductLocal => {
   
   // Caso 1: URL relativa sin dominio (ej: storage/img/1767160816_6954bbf068153.jpg)
   if (imageUrl && !imageUrl.startsWith('http') && imageUrl !== '/images/products/default.jpg') {
-    const baseUrl = process.env.NEXT_PUBLIC_API_URL || 'https://api.bebidasdelperuapp.com';
+    const baseUrl = process.env.NEXT_PUBLIC_API_URL 
+      ? process.env.NEXT_PUBLIC_API_URL.replace('/api', '') 
+      : 'https://api.bebidasdelperuapp.com';
     // Insertar "productos/" en la ruta: storage/img/... → storage/img/productos/...
     const imagePath = imageUrl.replace('storage/img/', 'storage/img/productos/');
     imageUrl = `${baseUrl}/${imagePath}`;

@@ -519,7 +519,9 @@ class ProductsApiService {
     
     // Si la URL no es absoluta (no empieza con http/https), agregar la base URL del servidor
     if (imageUrl && !imageUrl.startsWith('http') && imageUrl !== '/storage/img/products/default.jpg') {
-      const baseUrl = process.env.NEXT_PUBLIC_API_URL || 'https://api.bebidasdelperuapp.com';
+      const baseUrl = process.env.NEXT_PUBLIC_API_URL 
+        ? process.env.NEXT_PUBLIC_API_URL.replace('/api', '') 
+        : 'https://api.bebidasdelperuapp.com';
       // Insertar "productos/" en la ruta: storage/img/1767160816_6954bbf068153.jpg 
       // → storage/img/productos/1767160816_6954bbf068153.jpg
       const imagePath = imageUrl.replace('storage/img/', 'storage/img/productos/');

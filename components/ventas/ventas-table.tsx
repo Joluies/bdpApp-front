@@ -222,14 +222,35 @@ export const VentasTable = () => {
                      {loading ? (
                         <Table.Row>
                            <Table.Cell><Text>Cargando ventas...</Text></Table.Cell>
+                           <Table.Cell>-</Table.Cell>
+                           <Table.Cell>-</Table.Cell>
+                           <Table.Cell>-</Table.Cell>
+                           <Table.Cell>-</Table.Cell>
+                           <Table.Cell>-</Table.Cell>
+                           <Table.Cell>-</Table.Cell>
+                           <Table.Cell>-</Table.Cell>
                         </Table.Row>
                      ) : error ? (
                         <Table.Row>
                            <Table.Cell>Error al cargar las ventas</Table.Cell>
+                           <Table.Cell>-</Table.Cell>
+                           <Table.Cell>-</Table.Cell>
+                           <Table.Cell>-</Table.Cell>
+                           <Table.Cell>-</Table.Cell>
+                           <Table.Cell>-</Table.Cell>
+                           <Table.Cell>-</Table.Cell>
+                           <Table.Cell>-</Table.Cell>
                         </Table.Row>
                      ) : ventasFiltradas.length === 0 ? (
                         <Table.Row>
                            <Table.Cell>No hay pedidos confirmados registrados. Los pedidos confirmados aparecerán aquí automáticamente.</Table.Cell>
+                           <Table.Cell>-</Table.Cell>
+                           <Table.Cell>-</Table.Cell>
+                           <Table.Cell>-</Table.Cell>
+                           <Table.Cell>-</Table.Cell>
+                           <Table.Cell>-</Table.Cell>
+                           <Table.Cell>-</Table.Cell>
+                           <Table.Cell>-</Table.Cell>
                         </Table.Row>
                      ) : (
                         ventasFiltradas.map((venta) => (
