@@ -13,29 +13,33 @@ export const Container = ({ children, ...props }: any) => React.createElement('d
 export const Select = ({ children, ...props }: any) => React.createElement('select', props, children as any);
 export const SelectItem = ({ children, ...props }: any) => React.createElement('option', props, children as any);
 export const Spinner = (props: any) => React.createElement('div', props, '⏳');
-export const Grid = ({ children, ...props }: any) => React.createElement('div', { className: 'grid', ...props }, children as any);
+export const Grid: any = ({ children, ...props }: any) => React.createElement('div', { className: 'grid', ...props }, children as any);
+(Grid as any).Container = ({ children, ...props }: any) => React.createElement('div', { className: 'grid grid-cols-12 gap-4', ...props }, children as any);
 export const Col = ({ children, ...props }: any) => React.createElement('div', { className: 'col', ...props }, children as any);
 export const Row = ({ children, ...props }: any) => React.createElement('div', { className: 'row', ...props }, children as any);
 export const User = ({ children, ...props }: any) => React.createElement('div', props, children as any);
 export const Tooltip = ({ children, ...props }: any) => React.createElement('div', { title: props.content, ...props }, children as any);
 export const Spacer = (props: any) => React.createElement('div', props);
-export const Loading = (props: any) => React.createElement('div', props, '⏳ Cargando...');
+export const Loading: any = (props: any) => React.createElement('div', props, '⏳ Cargando...');
 export const Link = ({ children, ...props }: any) => React.createElement('a', props, children as any);
-export const Avatar = (props: any) => React.createElement('div', { className: 'w-8 h-8 rounded-full bg-gray-300', ...props }, props.text);
+export const Avatar: any = (props: any) => React.createElement('div', { className: 'w-8 h-8 rounded-full bg-gray-300', ...props }, props.text);
+(Avatar as any).Group = ({ children, ...props }: any) => React.createElement('div', { className: 'flex -space-x-2', ...props }, children as any);
 export const Table: any = ({ children, ...props }: any) => React.createElement('table', props, children as any);
-export const Collapse = ({ children, title, ...props }: any) => 
+export const Collapse: any = ({ children, title, ...props }: any) => 
   React.createElement('div', props, 
     React.createElement('div', null, title),
     React.createElement('div', null, children as any)
   );
+(Collapse as any).Group = ({ children, ...props }: any) => React.createElement('div', props, children as any);
 
-export const Dropdown = ({ children, ...props }: any) => React.createElement('div', props, children as any);
+export const Dropdown: any = ({ children, ...props }: any) => React.createElement('div', props, children as any);
 (Dropdown as any).Trigger = ({ children }: any) => children;
+(Dropdown as any).Button = ({ children, ...props }: any) => React.createElement('button', props, children as any);
 (Dropdown as any).Menu = ({ children, ...props }: any) => React.createElement('div', props, children as any);
 (Dropdown as any).Item = ({ children, ...props }: any) => React.createElement('button', props, children as any);
 (Dropdown as any).Section = ({ children, ...props }: any) => React.createElement('div', props, children as any);
 
-export const Navbar = ({ children, ...props }: any) => React.createElement('nav', props, children as any);
+export const Navbar: any = ({ children, ...props }: any) => React.createElement('nav', props, children as any);
 (Navbar as any).Item = ({ children, ...props }: any) => React.createElement('div', props, children as any);
 (Navbar as any).Content = ({ children, ...props }: any) => React.createElement('div', props, children as any);
 (Navbar as any).Brand = ({ children, ...props }: any) => React.createElement('div', props, children as any);
