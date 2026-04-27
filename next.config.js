@@ -1,31 +1,10 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   reactStrictMode: true,
-  swcMinify: true,
-  
-  // Configuración para mejor performance
+  turbopack: {},
   compress: true,
   generateEtags: true,
   
-  // Webpack configuration to ignore problematic directories
-  webpack: (config, { isServer }) => {
-    // Ignore System Volume Information and other Windows system directories
-    config.watchOptions = {
-      ...config.watchOptions,
-      ignored: [
-        '**/node_modules/**',
-        '**/.next/**',
-        '**/.git/**',
-        '**/System Volume Information/**',
-        '**/$RECYCLE.BIN/**',
-        '**/.vscode/**',
-        '**/dist/**',
-      ],
-    };
-    return config;
-  },
-  
-  // CORS y headers de seguridad
   async headers() {
     return [
       {
@@ -56,14 +35,12 @@ const nextConfig = {
     ]
   },
   
-  // Rewrites para API
   async rewrites() {
     return {
       beforeFiles: [],
     }
   },
   
-  // Redireccionamientos si es necesario
   async redirects() {
     return []
   }
