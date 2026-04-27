@@ -22,6 +22,9 @@
     "paths": {
       "@/*": [
         "./*"
+      ],
+      "@nextui-org/react": [
+        "./lib/nextui-stubs.ts"
       ]
     }
   },

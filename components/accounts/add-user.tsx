@@ -190,7 +190,7 @@ export const AddUser = () => {
             apellido: formData.apellido,
             username: formData.username,
             password: formData.password,
-            tipo_usuario: formData.tipo_usuario,
+            tipo_usuario: formData.tipo_usuario as 'administrativo' | 'operativo',
             role_id: parseInt(formData.roleId)
          });
 
